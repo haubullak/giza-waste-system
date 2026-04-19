@@ -1,0 +1,16 @@
+{
+  "name": "giza-waste-system",
+  "version": "1.0.0",
+  "description": "منظومة المخلفات الصلبة - محافظة الجيزة",
+  "main": "index.html",
+  "scripts": {
+    "start": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "keywords": ["giza", "waste", "management", "egypt"],
+  "author": "محافظة الجيزة",
+  "license": "MIT",
+  "devDependencies": {
+    "vercel": "^32.0.0"
+  }
+}
