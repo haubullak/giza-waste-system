@@ -11,7 +11,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Tajawal', 'Tahoma', sans-serif; background: #f0f2f5; }
         
-        /* خلفية متحركة */
         .login-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; }
         .login-bg .gradient-bg { position: absolute; width: 200%; height: 200%; background: linear-gradient(135deg, #1a472a 0%, #2d6a4f 25%, #1a472a 50%, #0d2e1c 75%, #1a472a 100%); animation: gradientShift 15s ease infinite; }
         @keyframes gradientShift { 0% { transform: translate(0%, 0%); } 25% { transform: translate(-25%, -25%); } 50% { transform: translate(-50%, -50%); } 75% { transform: translate(-25%, -25%); } 100% { transform: translate(0%, 0%); } }
@@ -117,7 +116,6 @@
     <div class="gradient-bg"></div>
 </div>
 
-<!-- Login Page -->
 <div id="loginPage" class="login-container">
     <div class="login-card">
         <div class="logo-wrapper">
@@ -154,7 +152,6 @@
     </div>
 </div>
 
-<!-- Main App -->
 <div id="mainApp" class="hidden">
     <div class="navbar">
         <div class="logo-area">
@@ -178,7 +175,6 @@
     </div>
 
     <div class="container">
-        <!-- Dashboard -->
         <div id="dashboardPage">
             <div class="stats-grid">
                 <div class="stat-card"><i class="fas fa-file-alt"></i><h3>إجمالي الطلبات</h3><div class="number" id="totalRequests">0</div></div>
@@ -197,7 +193,6 @@
             </div>
         </div>
 
-        <!-- New Request -->
         <div id="newRequestPage" class="hidden">
             <div class="card">
                 <h3>➕ تسجيل طلب رخصة بناء جديد</h3>
@@ -236,7 +231,6 @@
             </div>
         </div>
 
-        <!-- Requests List -->
         <div id="requestsListPage" class="hidden">
             <div class="card">
                 <h3>📋 جميع طلبات تراخيص البناء</h3>
@@ -259,7 +253,6 @@
             </div>
         </div>
 
-        <!-- Refund -->
         <div id="refundPage" class="hidden">
             <div class="card">
                 <h3>🔄 استرداد المبلغ التأميني</h3>
@@ -273,7 +266,6 @@
             </div>
         </div>
 
-        <!-- Users Management -->
         <div id="usersPage" class="hidden">
             <div class="card">
                 <h3>👥 إدارة المستخدمين والصلاحيات</h3>
@@ -298,15 +290,34 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-<script type="module" src="supabase-client.js"></script>
 
 <script>
-    // ========== المتغيرات العامة ==========
+    // =====================================================
+    // منظومة المخلفات الصلبة - محافظة الجيزة
+    // =====================================================
+    
+    // المتغيرات العامة
     let currentUser = null;
     let map = null;
     let marker = null;
     
-    // ========== دوال مساعدة ==========
+    // بيانات المستخدمين (مؤقتة - سيتم جلبها من Supabase لاحقاً)
+    let users = [
+        { id: 1, username: 'موظف_بولاق', password: '123', role: 'موظف حي', district: 'بولاق الدكرور', permissions: { add: true, edit: false, delete: false, viewAll: false, manageUsers: false } },
+        { id: 2, username: 'مدير_بولاق', password: '123', role: 'مدير حي', district: 'بولاق الدكرور', permissions: { add: true, edit: true, delete: false, viewAll: false, manageUsers: false } },
+        { id: 3, username: 'موظف_هيئة', password: '123', role: 'موظف هيئة', district: null, permissions: { add: false, edit: false, delete: false, viewAll: true, manageUsers: false } },
+        { id: 4, username: 'مدير_هيئة', password: '123', role: 'مدير هيئة', district: null, permissions: { add: true, edit: true, delete: true, viewAll: true, manageUsers: true } }
+    ];
+    
+    // بيانات الطلبات (مؤقتة)
+    let requests = JSON.parse(localStorage.getItem('giza_requests')) || [];
+    
+    // حفظ البيانات
+    function saveRequests() {
+        localStorage.setItem('giza_requests', JSON.stringify(requests));
+    }
+    
+    // دوال مساعدة
     function showToast(message, type = 'success') {
         let toast = document.createElement('div');
         toast.className = 'toast-success';
@@ -316,17 +327,17 @@
         setTimeout(() => toast.remove(), 3000);
     }
     
-    function generateTransactionNo() { 
-        let now = new Date(); 
-        return `TR-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${Math.floor(Math.random()*10000)}`; 
+    function generateTransactionNo() {
+        let now = new Date();
+        return `TR-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${Math.floor(Math.random()*10000)}`;
     }
     
-    function setTransactionNo() { 
+    function setTransactionNo() {
         const input = document.getElementById('transactionNo');
         if (input) input.value = generateTransactionNo();
     }
     
-    // ========== دوال الحسابات ==========
+    // دوال الحسابات
     function calculateVolumeFromDimensions(workType, area, depth, floors) {
         if (workType === 'حفر') return area * depth;
         else if (workType === 'هدم') return area * floors * 0.5;
@@ -380,7 +391,7 @@
         updateCalculations();
     }
     
-    // ========== الخريطة ==========
+    // الخريطة
     function initMap(lat = 30.0131, lng = 31.2089) {
         const mapElement = document.getElementById('map');
         if (!mapElement) return;
@@ -388,129 +399,37 @@
         map = L.map('map').setView([lat, lng], 14);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
         marker = L.marker([lat, lng], { draggable: true }).addTo(map);
-        marker.on('dragend', function(e) { 
-            let pos = marker.getLatLng(); 
+        marker.on('dragend', function(e) {
+            let pos = marker.getLatLng();
             const latInput = document.getElementById('lat');
             const lngInput = document.getElementById('lng');
-            if (latInput) latInput.value = pos.lat; 
-            if (lngInput) lngInput.value = pos.lng; 
+            if (latInput) latInput.value = pos.lat;
+            if (lngInput) lngInput.value = pos.lng;
         });
-        map.on('click', function(e) { 
-            marker.setLatLng(e.latlng); 
+        map.on('click', function(e) {
+            marker.setLatLng(e.latlng);
             const latInput = document.getElementById('lat');
             const lngInput = document.getElementById('lng');
-            if (latInput) latInput.value = e.latlng.lat; 
-            if (lngInput) lngInput.value = e.latlng.lng; 
+            if (latInput) latInput.value = e.latlng.lat;
+            if (lngInput) lngInput.value = e.latlng.lng;
         });
     }
     
     function getCurrentLocation() {
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(pos => { 
-                initMap(pos.coords.latitude, pos.coords.longitude); 
+            navigator.geolocation.getCurrentPosition(pos => {
+                initMap(pos.coords.latitude, pos.coords.longitude);
                 const latInput = document.getElementById('lat');
                 const lngInput = document.getElementById('lng');
-                if (latInput) latInput.value = pos.coords.latitude; 
-                if (lngInput) lngInput.value = pos.coords.longitude; 
+                if (latInput) latInput.value = pos.coords.latitude;
+                if (lngInput) lngInput.value = pos.coords.longitude;
                 const statusDiv = document.getElementById('locationStatus');
                 if (statusDiv) statusDiv.innerHTML = '📍 تم تحديد موقعك';
             }, err => alert('خطأ في تحديد الموقع'));
         } else alert('المتصفح لا يدعم تحديد الموقع');
     }
     
-    // ========== دوال قاعدة البيانات (الاتصال بـ Supabase) ==========
-    async function saveRequestToDB(requestData) { 
-        if (!window.supabaseFunctions) {
-            showToast('❌ خطأ في الاتصال بقاعدة البيانات', 'error');
-            return { success: false };
-        }
-        try {
-            const result = await window.supabaseFunctions.saveRequest(requestData);
-            console.log('✅ تم الحفظ:', result);
-            return { success: true };
-        } catch (error) {
-            console.error('❌ خطأ:', error);
-            showToast('خطأ في حفظ البيانات', 'error');
-            return { success: false };
-        }
-    }
-    
-    async function getAllRequestsFromDB() { 
-        if (!window.supabaseFunctions) return [];
-        try {
-            const requests = await window.supabaseFunctions.getRequests(currentUser?.role, currentUser?.district);
-            return requests || [];
-        } catch (error) {
-            console.error('❌ خطأ:', error);
-            return [];
-        }
-    }
-    
-    async function updateRefundStatusDB(transactionNo, licenseNo, phone) {
-        if (!window.supabaseFunctions) return { success: false };
-        try {
-            const result = await window.supabaseFunctions.updateRefundStatus(transactionNo, licenseNo, phone);
-            return { success: true };
-        } catch (error) {
-            console.error('❌ خطأ:', error);
-            return { success: false };
-        }
-    }
-    
-    async function deleteRequestDB(id) {
-        if (!window.supabaseFunctions) return false;
-        try {
-            await window.supabaseFunctions.deleteRequest(id);
-            return true;
-        } catch (error) {
-            console.error('❌ خطأ:', error);
-            return false;
-        }
-    }
-    
-    async function getUsersFromDB() {
-        if (!window.supabaseFunctions) return [];
-        try {
-            return await window.supabaseFunctions.getUsers();
-        } catch (error) {
-            console.error('❌ خطأ:', error);
-            return [];
-        }
-    }
-    
-    async function addUserToDB(userData) {
-        if (!window.supabaseFunctions) return false;
-        try {
-            await window.supabaseFunctions.addUser(userData);
-            return true;
-        } catch (error) {
-            console.error('❌ خطأ:', error);
-            return false;
-        }
-    }
-    
-    async function deleteUserFromDB(id) {
-        if (!window.supabaseFunctions) return false;
-        try {
-            await window.supabaseFunctions.deleteUser(id);
-            return true;
-        } catch (error) {
-            console.error('❌ خطأ:', error);
-            return false;
-        }
-    }
-    
-    async function verifyUserLogin(username, password, role) {
-        if (!window.supabaseFunctions) return null;
-        try {
-            return await window.supabaseFunctions.verifyUser(username, password, role);
-        } catch (error) {
-            console.error('❌ خطأ:', error);
-            return null;
-        }
-    }
-    
-    // ========== دوال حفظ وعرض البيانات ==========
+    // دوال الطلبات
     async function saveNewRequest() {
         if (!currentUser?.permissions?.add) {
             showToast('❌ ليس لديك صلاحية لإضافة طلبات جديدة', 'error');
@@ -545,31 +464,32 @@
         }
         
         const requestData = {
+            id: Date.now(),
             transactionNo, licenseNo, nationalId, citizenName, phone, district, address, workType,
             length, width, area, depth, floors, volume, engineer, paymentMethod, lat, lng,
-            total: fees.total
+            total: fees.total, item2: fees.item2,
+            refundStatus: 'pending', createdAt: new Date().toISOString()
         };
         
-        const result = await saveRequestToDB(requestData);
-        if (result.success) {
-            showToast(`✅ تم تسجيل الطلب بنجاح! رقم المعاملة: ${transactionNo}`);
-            await loadDashboardStats();
-            await loadDashboard();
-            await loadAllRequests();
-            
-            // تنظيف الحقول
-            const fields = ['licenseNo', 'nationalId', 'citizenName', 'phone', 'address', 'engineer', 'volumeManual'];
-            fields.forEach(f => { const el = document.getElementById(f); if (el) el.value = ''; });
-            if (document.getElementById('district')) document.getElementById('district').value = '';
-            document.querySelectorAll('input[name="workType"]').forEach(r => r.checked = false);
-            document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
-            setTransactionNo();
-            updateCalculations();
-        }
+        requests.push(requestData);
+        saveRequests();
+        
+        showToast(`✅ تم تسجيل الطلب بنجاح! رقم المعاملة: ${transactionNo}`);
+        await loadDashboardStats();
+        await loadDashboard();
+        await loadAllRequests();
+        
+        // تنظيف الحقول
+        const fields = ['licenseNo', 'nationalId', 'citizenName', 'phone', 'address', 'engineer', 'volumeManual'];
+        fields.forEach(f => { const el = document.getElementById(f); if (el) el.value = ''; });
+        if (document.getElementById('district')) document.getElementById('district').value = '';
+        document.querySelectorAll('input[name="workType"]').forEach(r => r.checked = false);
+        document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+        setTransactionNo();
+        updateCalculations();
     }
     
     async function loadDashboardStats() {
-        const requests = await getAllRequestsFromDB();
         const totalRequestsEl = document.getElementById('totalRequests');
         const totalRevenueEl = document.getElementById('totalRevenue');
         const totalVolumeEl = document.getElementById('totalVolume');
@@ -580,36 +500,43 @@
         if (totalRevenueEl) totalRevenueEl.innerText = Math.round(totalRevenue) + ' ج';
         const totalVolume = requests.reduce((sum, r) => sum + (r.volume || 0), 0);
         if (totalVolumeEl) totalVolumeEl.innerText = totalVolume.toFixed(1) + ' م³';
-        const refunded = requests.filter(r => r.refund_status === 'refunded').length;
+        const refunded = requests.filter(r => r.refundStatus === 'refunded').length;
         if (totalRefundedEl) totalRefundedEl.innerText = refunded;
     }
     
     async function loadDashboard() {
-        const requests = await getAllRequestsFromDB();
-        const recent = [...requests].reverse().slice(0, 10);
+        let filteredRequests = [...requests];
+        if (currentUser?.role === 'موظف حي' || currentUser?.role === 'مدير حي') {
+            filteredRequests = filteredRequests.filter(r => r.district === currentUser.district);
+        }
+        const recent = filteredRequests.reverse().slice(0, 10);
         const tbody = document.querySelector('#recentTable tbody');
         if (tbody) {
             tbody.innerHTML = recent.map(r => `<tr>
-                <td>${r.transaction_no || ''}</td><td>${r.license_no || ''}</td><td>${r.citizen_name || ''}</td>
-                <td>${r.district || ''}</td><td>${r.work_type || ''}</td><td>${(r.volume || 0).toFixed(2)}</td>
+                <td>${r.transactionNo || ''}</td><td>${r.licenseNo || ''}</td><td>${r.citizenName || ''}</td>
+                <td>${r.district || ''}</td><td>${r.workType || ''}</td><td>${(r.volume || 0).toFixed(2)}</td>
                 <td>${Math.round(r.total || 0)} ج</td>
-                <td>${r.refund_status === 'pending' ? '<span class="status-pending">لم يُرد</span>' : '<span class="status-refunded">تم الرد</span>'}</td>
+                <td>${r.refundStatus === 'pending' ? '<span class="status-pending">لم يُرد</span>' : '<span class="status-refunded">تم الرد</span>'}</td>
             </tr>`).join('');
         }
     }
     
     async function loadAllRequests() {
-        const requests = await getAllRequestsFromDB();
+        let filteredRequests = [...requests];
+        if (currentUser?.role === 'موظف حي' || currentUser?.role === 'مدير حي') {
+            filteredRequests = filteredRequests.filter(r => r.district === currentUser.district);
+        }
+        
         const searchText = document.getElementById('searchInput')?.value.toLowerCase() || '';
         const filterDistrict = document.getElementById('filterDistrict')?.value || '';
         const filterStatus = document.getElementById('filterStatus')?.value || '';
         
-        const filtered = requests.filter(r => {
-            const matchSearch = (r.transaction_no || '').toLowerCase().includes(searchText) || 
-                              (r.license_no || '').toLowerCase().includes(searchText) || 
-                              (r.citizen_name || '').toLowerCase().includes(searchText);
+        const filtered = filteredRequests.filter(r => {
+            const matchSearch = (r.transactionNo || '').toLowerCase().includes(searchText) ||
+                              (r.licenseNo || '').toLowerCase().includes(searchText) ||
+                              (r.citizenName || '').toLowerCase().includes(searchText);
             const matchDistrict = !filterDistrict || r.district === filterDistrict;
-            const matchStatus = !filterStatus || r.refund_status === filterStatus;
+            const matchStatus = !filterStatus || r.refundStatus === filterStatus;
             return matchSearch && matchDistrict && matchStatus;
         });
         
@@ -619,10 +546,10 @@
                 tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;">📭 لا توجد طلبات حالياً</td></tr>';
             } else {
                 tbody.innerHTML = filtered.map(r => `<tr>
-                    <td>${r.transaction_no || ''}</td><td>${r.license_no || ''}</td><td>${r.citizen_name || ''}</td>
+                    <td>${r.transactionNo || ''}</td><td>${r.licenseNo || ''}</td><td>${r.citizenName || ''}</td>
                     <td>${r.district || ''}</td><td>${r.engineer || ''}</td><td>${(r.volume || 0).toFixed(2)}</td>
-                    <td>${Math.round(r.total || 0)} ج</td><td>${r.payment_method || ''}</td>
-                    <td>${r.refund_status === 'pending' ? '<span class="status-pending">لم يُرد</span>' : '<span class="status-refunded">تم الرد</span>'}</td>
+                    <td>${Math.round(r.total || 0)} ج</td><td>${r.paymentMethod || ''}</td>
+                    <td>${r.refundStatus === 'pending' ? '<span class="status-pending">لم يُرد</span>' : '<span class="status-refunded">تم الرد</span>'}</td>
                     <td>${currentUser?.permissions?.delete ? `<button onclick="deleteRequestById(${r.id})" style="background:#d32f2f;color:white;border:none;border-radius:20px;padding:5px 10px;cursor:pointer;"><i class="fas fa-trash"></i></button>` : ''}</td>
                 </tr>`).join('');
             }
@@ -631,21 +558,37 @@
     
     window.deleteRequestById = async (id) => {
         if (confirm('هل أنت متأكد من حذف هذا الطلب؟')) {
-            const success = await deleteRequestDB(id);
-            if (success) {
-                showToast('✅ تم حذف الطلب بنجاح');
-                await loadDashboardStats();
-                await loadDashboard();
-                await loadAllRequests();
-            } else {
-                showToast('❌ فشل حذف الطلب', 'error');
-            }
+            requests = requests.filter(r => r.id !== id);
+            saveRequests();
+            showToast('✅ تم حذف الطلب بنجاح');
+            await loadDashboardStats();
+            await loadDashboard();
+            await loadAllRequests();
         }
     };
     
-    // ========== إدارة المستخدمين ==========
-    async function loadUsersTable() {
-        const users = await getUsersFromDB();
+    async function updateRefundStatusDB(transactionNo, licenseNo, phone) {
+        const request = requests.find(r => r.transactionNo === transactionNo && r.licenseNo === licenseNo && r.phone === phone);
+        if (request) {
+            request.refundStatus = 'refunded';
+            saveRequests();
+            return { success: true };
+        }
+        return { success: false };
+    }
+    
+    // دوال المستخدمين
+    function getPermissionsByRole(role, district = null) {
+        switch(role) {
+            case 'موظف حي': return { add: true, edit: false, delete: false, viewAll: false, manageUsers: false };
+            case 'مدير حي': return { add: true, edit: true, delete: false, viewAll: false, manageUsers: false };
+            case 'موظف هيئة': return { add: false, edit: false, delete: false, viewAll: true, manageUsers: false };
+            case 'مدير هيئة': return { add: true, edit: true, delete: true, viewAll: true, manageUsers: true };
+            default: return { add: false, edit: false, delete: false, viewAll: false, manageUsers: false };
+        }
+    }
+    
+    function loadUsersTable() {
         const tbody = document.querySelector('#usersTable tbody');
         if (tbody) {
             tbody.innerHTML = users.map(u => `<tr>
@@ -669,28 +612,13 @@
     
     window.deleteUserById = async (id) => {
         if (confirm('هل أنت متأكد من حذف هذا المستخدم؟')) {
-            const success = await deleteUserFromDB(id);
-            if (success) {
-                showToast('✅ تم حذف المستخدم بنجاح');
-                await loadUsersTable();
-            } else {
-                showToast('❌ فشل حذف المستخدم', 'error');
-            }
+            users = users.filter(u => u.id !== id);
+            showToast('✅ تم حذف المستخدم بنجاح');
+            loadUsersTable();
         }
     };
     
-    // ========== إعدادات الصلاحيات ==========
-    function getPermissionsByRole(role, district = null) {
-        switch(role) {
-            case 'موظف حي': return { add: true, edit: false, delete: false, viewAll: false, manageUsers: false };
-            case 'مدير حي': return { add: true, edit: true, delete: false, viewAll: false, manageUsers: false };
-            case 'موظف هيئة': return { add: false, edit: false, delete: false, viewAll: true, manageUsers: false };
-            case 'مدير هيئة': return { add: true, edit: true, delete: true, viewAll: true, manageUsers: true };
-            default: return { add: false, edit: false, delete: false, viewAll: false, manageUsers: false };
-        }
-    }
-    
-    // ========== بناء القوائم حسب الصلاحيات ==========
+    // بناء القوائم
     function setupNavLinks() {
         const navContainer = document.getElementById('navLinks');
         if (!navContainer) return;
@@ -736,16 +664,32 @@
         }
     }
     
-    // ========== تسجيل الدخول ==========
-    document.getElementById('loginBtn')?.addEventListener('click', async () => {
+    // تسجيل الدخول - تم إصلاحه!
+    document.getElementById('loginBtn')?.addEventListener('click', async function(e) {
+        e.preventDefault();
+        console.log('🔵 تم الضغط على زر تسجيل الدخول');
+        
         const username = document.getElementById('loginUsername').value;
         const password = document.getElementById('loginPassword').value;
         const role = document.getElementById('loginRole').value;
         
-        const user = await verifyUserLogin(username, password, role);
+        console.log('📝 المدخلات:', { username, password, role });
+        
+        if (!username || !password || !role) {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.innerText = '❌ الرجاء إدخال جميع البيانات';
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => errorDiv.classList.add('hidden'), 3000);
+            return;
+        }
+        
+        const user = users.find(u => u.username === username && u.password === password && u.role === role);
+        console.log('👤 المستخدم الموجود:', user);
         
         if (user) {
             currentUser = { ...user, permissions: user.permissions || getPermissionsByRole(user.role, user.district) };
+            console.log('✅ تم تسجيل الدخول بنجاح:', currentUser);
+            
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             document.getElementById('userNameDisplay').innerText = currentUser.username;
@@ -767,12 +711,11 @@
             loadDistrictsFilter();
             showToast(`مرحباً ${currentUser.username} 👋`, 'success');
         } else {
+            console.log('❌ فشل تسجيل الدخول: المستخدم غير موجود');
             const errorDiv = document.getElementById('loginError');
-            if (errorDiv) {
-                errorDiv.innerText = '❌ اسم المستخدم أو كلمة المرور أو الجهة غير صحيحة';
-                errorDiv.classList.remove('hidden');
-                setTimeout(() => errorDiv.classList.add('hidden'), 3000);
-            }
+            errorDiv.innerText = '❌ اسم المستخدم أو كلمة المرور أو الجهة غير صحيحة';
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => errorDiv.classList.add('hidden'), 3000);
         }
     });
     
@@ -788,41 +731,7 @@
         if (errorDiv) errorDiv.classList.add('hidden');
     });
     
-    // ========== إضافة مستخدم جديد ==========
-    document.getElementById('addUserBtn')?.addEventListener('click', async () => {
-        if (!currentUser?.permissions?.manageUsers) {
-            showToast('❌ ليس لديك صلاحية لإضافة مستخدمين', 'error');
-            return;
-        }
-        
-        const username = document.getElementById('newUsername')?.value;
-        const password = document.getElementById('newPassword')?.value;
-        const role = document.getElementById('newRole')?.value;
-        const district = document.getElementById('newDistrict')?.value;
-        
-        if (!username || !password) {
-            showToast('❌ أدخل اسم المستخدم وكلمة المرور', 'error');
-            return;
-        }
-        
-        const newUser = {
-            username, password, role,
-            district: (role === 'موظف حي' || role === 'مدير حي') ? district : null,
-            permissions: getPermissionsByRole(role, district)
-        };
-        
-        const success = await addUserToDB(newUser);
-        if (success) {
-            showToast(`✅ تم إضافة المستخدم ${username}`);
-            const inputs = ['newUsername', 'newPassword'];
-            inputs.forEach(i => { const el = document.getElementById(i); if (el) el.value = ''; });
-            await loadUsersTable();
-        } else {
-            showToast('❌ فشل إضافة المستخدم', 'error');
-        }
-    });
-    
-    // ========== ربط الأحداث ==========
+    // ربط الأحداث الأخرى
     document.getElementById('saveRequestBtn')?.addEventListener('click', saveNewRequest);
     document.getElementById('getLocationBtn')?.addEventListener('click', getCurrentLocation);
     document.getElementById('refreshTableBtn')?.addEventListener('click', () => { loadAllRequests(); showToast('🔄 تم تحديث الجدول'); });
@@ -864,13 +773,12 @@
         const phone = document.getElementById('refundPhone')?.value;
         
         if (transactionNo && licenseNo && phone) {
-            const requests = await getAllRequestsFromDB();
-            const req = requests.find(r => r.transaction_no === transactionNo && r.license_no === licenseNo && r.phone === phone);
+            const req = requests.find(r => r.transactionNo === transactionNo && r.licenseNo === licenseNo && r.phone === phone);
             const infoDiv = document.getElementById('refundInfo');
             if (infoDiv) {
-                if (req && req.refund_status === 'pending') {
-                    infoDiv.innerHTML = `<div style="background:#e8f5e9;padding:15px;border-radius:16px;"><i class="fas fa-check-circle"></i> تم العثور: ${req.citizen_name}<br>💰 المبلغ التأميني: ${Math.round(req.item2 || (req.volume * 40))} ج</div>`;
-                } else if (req && req.refund_status === 'refunded') {
+                if (req && req.refundStatus === 'pending') {
+                    infoDiv.innerHTML = `<div style="background:#e8f5e9;padding:15px;border-radius:16px;"><i class="fas fa-check-circle"></i> تم العثور: ${req.citizenName}<br>💰 المبلغ التأميني: ${Math.round(req.item2 || (req.volume * 40))} ج</div>`;
+                } else if (req && req.refundStatus === 'refunded') {
                     infoDiv.innerHTML = `<div style="background:#fff3e0;padding:15px;border-radius:16px;"><i class="fas fa-info-circle"></i> تم رد المبلغ مسبقاً</div>`;
                 } else {
                     infoDiv.innerHTML = `<div style="background:#ffe0e0;padding:15px;border-radius:16px;"><i class="fas fa-exclamation-triangle"></i> لم يتم العثور على الطلب</div>`;
@@ -883,19 +791,18 @@
     document.getElementById('refundLicenseNo')?.addEventListener('input', searchRefund);
     document.getElementById('refundPhone')?.addEventListener('input', searchRefund);
     
-    // ========== تصدير التقارير ==========
+    // تصدير التقارير
     document.getElementById('exportExcelBtn')?.addEventListener('click', async () => {
-        const requests = await getAllRequestsFromDB();
         const data = requests.map(r => ({
-            'رقم المعاملة': r.transaction_no,
-            'رقم الترخيص': r.license_no,
-            'المواطن': r.citizen_name,
+            'رقم المعاملة': r.transactionNo,
+            'رقم الترخيص': r.licenseNo,
+            'المواطن': r.citizenName,
             'الحي': r.district,
             'المهندس': r.engineer,
             'الحجم': (r.volume || 0).toFixed(2),
             'الإجمالي': Math.round(r.total || 0),
-            'طريقة الدفع': r.payment_method,
-            'الحالة': r.refund_status === 'pending' ? 'لم يُرد' : 'تم الرد'
+            'طريقة الدفع': r.paymentMethod,
+            'الحالة': r.refundStatus === 'pending' ? 'لم يُرد' : 'تم الرد'
         }));
         const ws = XLSX.utils.json_to_sheet(data);
         const wb = XLSX.utils.book_new();
@@ -905,10 +812,9 @@
     });
     
     document.getElementById('exportPdfBtn')?.addEventListener('click', async () => {
-        const requests = await getAllRequestsFromDB();
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ orientation: 'landscape' });
-        const tableData = requests.map(r => [r.transaction_no || '', r.license_no || '', r.citizen_name || '', r.district || '', (r.volume || 0).toFixed(2), Math.round(r.total || 0) + ' ج', r.payment_method || '']);
+        const tableData = requests.map(r => [r.transactionNo || '', r.licenseNo || '', r.citizenName || '', r.district || '', (r.volume || 0).toFixed(2), Math.round(r.total || 0) + ' ج', r.paymentMethod || '']);
         doc.autoTable({
             head: [['رقم المعاملة', 'رقم الترخيص', 'المواطن', 'الحي', 'الحجم', 'الإجمالي', 'طريقة الدفع']],
             body: tableData,
@@ -918,7 +824,36 @@
         showToast('📄 تم تصدير التقرير بنجاح');
     });
     
-    // ========== دوال إضافية ==========
+    document.getElementById('addUserBtn')?.addEventListener('click', () => {
+        if (!currentUser?.permissions?.manageUsers) {
+            showToast('❌ ليس لديك صلاحية لإضافة مستخدمين', 'error');
+            return;
+        }
+        
+        const username = document.getElementById('newUsername')?.value;
+        const password = document.getElementById('newPassword')?.value;
+        const role = document.getElementById('newRole')?.value;
+        const district = document.getElementById('newDistrict')?.value;
+        
+        if (!username || !password) {
+            showToast('❌ أدخل اسم المستخدم وكلمة المرور', 'error');
+            return;
+        }
+        
+        const newUser = {
+            id: Date.now(),
+            username, password, role,
+            district: (role === 'موظف حي' || role === 'مدير حي') ? district : null,
+            permissions: getPermissionsByRole(role, district)
+        };
+        
+        users.push(newUser);
+        showToast(`✅ تم إضافة المستخدم ${username}`);
+        const inputs = ['newUsername', 'newPassword'];
+        inputs.forEach(i => { const el = document.getElementById(i); if (el) el.value = ''; });
+        loadUsersTable();
+    });
+    
     function loadDistrictsFilter() {
         const districts = ['بولاق الدكرور', 'العجوزة', 'الدقي', 'الهرم', 'الجيزة', 'إمبابة', 'أوسيم', 'كرداسة'];
         const filterSelect = document.getElementById('filterDistrict');
@@ -955,15 +890,7 @@
     // التهيئة
     loadDistrictsFilter();
     updateCalculations();
-    
-    // عرض حالة اتصال Supabase
-    setTimeout(() => {
-        if (window.supabase) {
-            console.log('✅ Supabase متصل');
-        } else {
-            console.log('⚠️ Supabase غير متصل');
-        }
-    }, 1000);
+    console.log('✅ المنظومة جاهزة - انتظر تسجيل الدخول');
 </script>
 </body>
 </html>
