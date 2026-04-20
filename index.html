@@ -2,168 +2,132 @@
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>منظومة المخلفات الصلبة - محافظة الجيزة</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Tajawal', 'Tahoma', sans-serif; background: #f0f2f5; }
+        body { font-family: 'Tajawal', 'Tahoma', sans-serif; background: #0a0f1a; overflow-x: hidden; }
         
-        .login-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; }
-        .login-bg .gradient-bg { position: absolute; width: 200%; height: 200%; background: linear-gradient(135deg, #1a472a 0%, #2d6a4f 25%, #1a472a 50%, #0d2e1c 75%, #1a472a 100%); animation: gradientShift 15s ease infinite; }
-        @keyframes gradientShift { 0% { transform: translate(0%, 0%); } 25% { transform: translate(-25%, -25%); } 50% { transform: translate(-50%, -50%); } 75% { transform: translate(-25%, -25%); } 100% { transform: translate(0%, 0%); } }
+        /* خلفية ثلاثية الأبعاد متحركة */
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; pointer-events: none; }
+        .animated-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 30% 10%, #0a0f1a, #0d1b2a, #1b263b); animation: bgPulse 8s ease infinite; }
+        @keyframes bgPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.9; } }
         
-        .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; position: relative; z-index: 1; }
-        .login-card { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); border-radius: 40px; padding: 45px 35px; width: 100%; max-width: 480px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); animation: slideUpFade 0.8s ease-out; }
-        @keyframes slideUpFade { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        .logo-wrapper { text-align: center; margin-bottom: 25px; animation: pulseGlow 2s ease-in-out infinite; }
-        @keyframes pulseGlow { 0%, 100% { filter: drop-shadow(0 0 5px rgba(196, 154, 43, 0.3)); } 50% { filter: drop-shadow(0 0 20px rgba(196, 154, 43, 0.6)); } }
-        .logo-svg { display: inline-block; width: 100px; height: 100px; }
-        .login-card h2 { color: #1a472a; font-size: 1.8rem; text-align: center; }
-        .login-card .subtitle { text-align: center; color: #666; margin-bottom: 30px; }
-        .input-group { margin-bottom: 20px; position: relative; }
-        .input-group input, .input-group select { width: 100%; padding: 15px 20px; border: 2px solid #e0e0e0; border-radius: 25px; font-size: 1rem; font-family: 'Tajawal', sans-serif; transition: all 0.3s ease; background: white; }
-        .input-group input:focus, .input-group select:focus { outline: none; border-color: #c49a2b; box-shadow: 0 0 0 3px rgba(196, 154, 43, 0.1); transform: translateY(-2px); }
-        .login-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #1a472a, #2d6a4f); color: white; border: none; border-radius: 30px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; margin-top: 10px; }
-        .login-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(26, 71, 42, 0.3); }
-        .error-msg { background: #fee2e2; color: #d32f2f; padding: 12px; border-radius: 12px; margin-top: 15px; text-align: center; }
+        /* Login */
+        .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; position: relative; z-index: 10; }
+        .login-card { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); border-radius: 48px; padding: 50px 40px; width: 100%; max-width: 500px; box-shadow: 0 25px 45px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1); animation: floatIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55); border: 1px solid rgba(255,255,255,0.2); }
+        @keyframes floatIn { 0% { opacity: 0; transform: translateY(50px) scale(0.9); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+        .logo-wrapper { text-align: center; margin-bottom: 30px; animation: pulseGlow 2s ease-in-out infinite; }
+        @keyframes pulseGlow { 0%, 100% { filter: drop-shadow(0 0 5px rgba(196, 154, 43, 0.3)); } 50% { filter: drop-shadow(0 0 25px rgba(196, 154, 43, 0.8)); } }
+        .logo-svg { display: inline-block; width: 110px; height: 110px; transition: transform 0.3s ease; }
+        .login-card h2 { font-size: 2rem; text-align: center; background: linear-gradient(135deg, #c49a2b, #e8c45a); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .login-card .subtitle { text-align: center; color: rgba(255,255,255,0.7); margin-bottom: 35px; }
+        .input-group { margin-bottom: 25px; position: relative; }
+        .input-group input, .input-group select { width: 100%; padding: 16px 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 30px; font-size: 1rem; font-family: 'Tajawal', sans-serif; color: white; }
+        .input-group input:focus, .input-group select:focus { outline: none; border-color: #c49a2b; box-shadow: 0 0 15px rgba(196, 154, 43, 0.3); }
+        .login-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #c49a2b, #e8c45a); color: #1a472a; border: none; border-radius: 40px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        .login-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(196, 154, 43, 0.4); }
+        .error-msg { background: rgba(211, 47, 47, 0.9); color: white; padding: 12px; border-radius: 16px; margin-top: 15px; text-align: center; }
         .hidden { display: none; }
         
-        .navbar { background: linear-gradient(135deg, #1a472a, #0d2e1c); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; box-shadow: 0 5px 20px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        /* Navbar */
+        .navbar { background: rgba(26, 71, 42, 0.95); backdrop-filter: blur(10px); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; position: sticky; top: 0; z-index: 100; animation: slideDown 0.5s ease; color: white; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-100%); } to { opacity: 1; transform: translateY(0); } }
         .logo-area { display: flex; align-items: center; gap: 15px; }
-        .logo-svg-small { width: 50px; height: 50px; }
-        .logo-text h2 { font-size: 1.2rem; }
-        .logo-text p { font-size: 0.7rem; opacity: 0.8; }
+        .logo-svg-small { width: 50px; height: 50px; animation: rotateLogo 10s linear infinite; }
+        @keyframes rotateLogo { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .user-info { display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.15); padding: 8px 20px; border-radius: 40px; }
-        .user-info span { font-size: 0.85rem; }
-        .user-role-badge { background: #c49a2b; color: #1a472a; padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; margin-right: 8px; }
         .logout-btn { background: #c49a2b; border: none; padding: 6px 18px; border-radius: 30px; cursor: pointer; color: #1a472a; font-weight: bold; transition: all 0.3s; }
-        .logout-btn:hover { transform: scale(1.05); }
-        .nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
-        .nav-links button { background: transparent; border: none; color: white; font-size: 0.9rem; cursor: pointer; padding: 10px 20px; border-radius: 30px; transition: all 0.3s; }
-        .nav-links button:hover, .nav-links button.active { background: #c49a2b; color: #1a472a; transform: translateY(-2px); }
+        .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
+        .nav-links button { background: transparent; border: none; color: white; font-size: 0.9rem; cursor: pointer; padding: 10px 22px; border-radius: 40px; transition: all 0.3s; position: relative; overflow: hidden; }
+        .nav-links button::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #c49a2b, #e8c45a); opacity: 0; transition: opacity 0.3s; z-index: -1; border-radius: 40px; }
+        .nav-links button:hover::before, .nav-links button.active::before { opacity: 1; }
+        .nav-links button:hover, .nav-links button.active { color: #1a472a; transform: translateY(-2px); }
         
-        .container { max-width: 1400px; margin: 20px auto; padding: 0 20px; animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .container { max-width: 1400px; margin: 20px auto; padding: 0 20px; animation: fadeInUp 0.6s ease; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: white; border-radius: 24px; padding: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: all 0.3s; border-bottom: 4px solid #c49a2b; }
-        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-        .stat-card i { font-size: 40px; color: #1a472a; margin-bottom: 10px; }
-        .stat-card h3 { font-size: 0.85rem; color: #666; margin-bottom: 5px; }
-        .stat-card .number { font-size: 2rem; font-weight: bold; color: #1a472a; }
+        .card { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px); border-radius: 32px; padding: 30px; margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s; }
+        .card:hover { transform: translateY(-5px); border-color: rgba(196, 154, 43, 0.3); }
+        .card h3 { color: #c49a2b; margin-bottom: 20px; border-right: 4px solid #c49a2b; padding-right: 15px; }
         
-        .card { background: white; border-radius: 24px; padding: 25px; margin-bottom: 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); transition: all 0.3s; }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
-        .card h3 { color: #1a472a; margin-bottom: 20px; border-right: 4px solid #c49a2b; padding-right: 12px; display: flex; justify-content: space-between; align-items: center; }
-        
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
         .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-weight: bold; margin-bottom: 8px; color: #333; }
+        .form-group label { font-weight: bold; margin-bottom: 8px; color: rgba(255,255,255,0.8); }
         .form-group label i { margin-left: 8px; color: #c49a2b; }
-        .form-group input, .form-group select { padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 16px; font-size: 0.9rem; font-family: 'Tajawal', sans-serif; transition: all 0.3s; }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: #c49a2b; box-shadow: 0 0 0 3px rgba(196, 154, 43, 0.1); }
-        .form-group input[readonly] { background: #f5f5f0; }
+        .form-group input, .form-group select, .form-group textarea { padding: 12px 15px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; color: white; font-family: 'Tajawal', sans-serif; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #c49a2b; box-shadow: 0 0 10px rgba(196, 154, 43, 0.3); }
         
-        .radio-group { display: flex; gap: 20px; margin-top: 8px; flex-wrap: wrap; }
-        .radio-group label { display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer; padding: 8px 16px; border: 2px solid #e0e0e0; border-radius: 40px; transition: all 0.3s; }
-        .radio-group label:has(input:checked) { border-color: #1a472a; background: #e8f5e9; }
+        .radio-group { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 8px; }
+        .radio-group label { display: flex; align-items: center; gap: 8px; padding: 8px 18px; background: rgba(255,255,255,0.1); border-radius: 40px; cursor: pointer; }
+        .radio-group label:has(input:checked) { background: rgba(196, 154, 43, 0.3); }
         
-        #map { height: 300px; border-radius: 20px; margin-top: 10px; overflow: hidden; }
-        .location-btn { background: #c49a2b; border: none; padding: 10px 20px; border-radius: 30px; cursor: pointer; margin-top: 10px; font-weight: bold; }
+        #map { height: 250px; border-radius: 20px; margin-top: 10px; border: 2px solid rgba(196, 154, 43, 0.3); }
+        .location-btn { background: linear-gradient(135deg, #c49a2b, #e8c45a); border: none; padding: 8px 20px; border-radius: 40px; cursor: pointer; font-weight: bold; color: #1a472a; margin-top: 10px; }
         
         .payment-methods { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
-        .payment-option { display: flex; align-items: center; gap: 8px; padding: 10px 18px; border: 2px solid #e0e0e0; border-radius: 40px; cursor: pointer; transition: all 0.3s; }
-        .payment-option.selected { border-color: #1a472a; background: #e8f5e9; }
+        .payment-option { padding: 10px 20px; background: rgba(255,255,255,0.1); border-radius: 40px; cursor: pointer; transition: all 0.3s; }
+        .payment-option.selected { background: rgba(196, 154, 43, 0.4); border: 1px solid #c49a2b; }
         
-        .calculator-modern { background: linear-gradient(135deg, #1a472a, #0d2e1c); border-radius: 24px; padding: 25px; margin-top: 20px; color: white; }
-        .calculator-modern h4 { margin-bottom: 20px; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
-        .calc-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .calc-row.total { border-top: 2px solid #c49a2b; margin-top: 10px; padding-top: 15px; font-size: 1.2rem; font-weight: bold; }
+        .calculator-modern { background: linear-gradient(135deg, rgba(26, 71, 42, 0.9), rgba(13, 46, 28, 0.9)); border-radius: 28px; padding: 25px; margin-top: 20px; }
+        .calc-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); color: white; }
+        .calc-row.total { border-top: 2px solid #c49a2b; margin-top: 10px; padding-top: 15px; font-weight: bold; }
         .calc-row.total .value { color: #c49a2b; font-size: 1.4rem; }
         
-        .btn { background: linear-gradient(135deg, #1a472a, #2d6a4f); color: white; border: none; padding: 14px 20px; border-radius: 30px; cursor: pointer; font-size: 1rem; font-weight: bold; margin-top: 15px; width: 100%; transition: all 0.3s; }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(26, 71, 42, 0.3); }
-        .btn-secondary { background: linear-gradient(135deg, #c49a2b, #b8860b); }
-        .btn-excel { background: linear-gradient(135deg, #217346, #1b5e3a); }
-        .btn-pdf { background: linear-gradient(135deg, #d32f2f, #b71c1c); }
-        .btn-success { background: linear-gradient(135deg, #28a745, #1e7e34); }
-        
-        .button-group { display: flex; gap: 12px; margin-top: 15px; }
-        .button-group button { margin-top: 0; flex: 1; }
+        .btn { background: linear-gradient(135deg, #c49a2b, #e8c45a); color: #1a472a; border: none; padding: 14px 20px; border-radius: 40px; cursor: pointer; font-weight: bold; width: 100%; transition: all 0.3s; }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(196, 154, 43, 0.4); }
+        .btn-secondary { background: linear-gradient(135deg, #2196f3, #1976d2); color: white; }
         
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: right; border-bottom: 1px solid #eee; }
-        th { background: #1a472a; color: white; font-weight: 500; }
-        tr:hover td { background: #f5f5f0; }
-        .status-pending { background: #ff9800; color: white; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; display: inline-block; }
+        th, td { padding: 14px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); }
+        th { background: rgba(196, 154, 43, 0.2); color: #c49a2b; }
+        tr:hover td { background: rgba(255,255,255,0.05); }
+        
+        .status-pending { background: #ff9800; color: #1a472a; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; display: inline-block; }
         .status-approved { background: #4caf50; color: white; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; display: inline-block; }
-        .status-rejected { background: #f44336; color: white; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; display: inline-block; }
         .status-under-review { background: #2196f3; color: white; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; display: inline-block; }
-        .status-refunded { background: #9c27b0; color: white; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; display: inline-block; }
+        .status-sent-to-authority { background: #9c27b0; color: white; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; display: inline-block; }
         
-        .search-box { margin-bottom: 20px; display: flex; gap: 12px; flex-wrap: wrap; }
-        .search-box input, .search-box select { flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 30px; }
-        .dynamic-field.hidden { display: none; }
+        .search-box { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+        .search-box input, .search-box select { flex: 1; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 40px; color: white; }
         
-        .toast-success { position: fixed; bottom: 30px; right: 30px; background: #4caf50; color: white; padding: 15px 25px; border-radius: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); animation: slideInRight 0.3s ease; z-index: 1000; }
+        .toast-success { position: fixed; bottom: 30px; right: 30px; background: linear-gradient(135deg, #4caf50, #2e7d32); color: white; padding: 15px 25px; border-radius: 30px; animation: slideInRight 0.3s ease; z-index: 1000; display: flex; align-items: center; gap: 10px; }
         @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         
-        .driver-card { background: linear-gradient(135deg, #fff9c4, #fff3e0); border-radius: 20px; padding: 20px; margin-top: 20px; border: 2px solid #c49a2b; }
-        .driver-card h4 { color: #1a472a; margin-bottom: 15px; }
-        .driver-card .card-detail { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #ddd; }
+        .driver-card { background: linear-gradient(135deg, rgba(255, 249, 196, 0.95), rgba(255, 243, 224, 0.95)); border-radius: 24px; padding: 25px; margin-top: 20px; border: 2px solid #c49a2b; animation: cardPulse 2s ease-in-out infinite; }
+        @keyframes cardPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(196, 154, 43, 0.4); } 50% { box-shadow: 0 0 0 10px rgba(196, 154, 43, 0); } }
+        .driver-card .card-detail { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #ddd; color: #333; }
         
-        /* 3D Vehicle Container */
-        .vehicle-3d-container {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            border-radius: 24px;
-            padding: 20px;
-            margin-top: 20px;
-            position: relative;
-            overflow: hidden;
-            min-height: 350px;
-        }
-        .vehicle-3d-container h4 {
-            color: #c49a2b;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        #vehicle3DCanvas {
-            width: 100%;
-            height: 300px;
-            border-radius: 16px;
-            background: radial-gradient(circle at 30% 20%, #1a1a2e, #0a0a15);
-        }
-        .vehicle-info-panel {
-            background: rgba(255,255,255,0.1);
-            border-radius: 16px;
-            padding: 15px;
-            margin-top: 15px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            justify-content: space-between;
-        }
-        .vehicle-info-panel span {
-            font-size: 0.8rem;
-            color: #ccc;
-        }
-        .vehicle-info-panel strong {
-            color: #c49a2b;
-        }
+        /* 3D Vehicle Container - متطور */
+        .vehicle-3d-container { background: linear-gradient(135deg, #1a1a2e, #0f0f1a); border-radius: 28px; padding: 20px; margin-top: 20px; min-height: 450px; border: 1px solid rgba(196, 154, 43, 0.3); position: relative; overflow: hidden; }
+        .vehicle-3d-container::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, #c49a2b, transparent); animation: scanLine 3s linear infinite; }
+        @keyframes scanLine { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        .vehicle-3d-container h4 { color: #c49a2b; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        #vehicle3DCanvas { width: 100%; height: 380px; border-radius: 20px; background: radial-gradient(circle at 30% 20%, #1a1a2e, #0a0a15); cursor: grab; }
+        #vehicle3DCanvas:active { cursor: grabbing; }
+        .controls-hint { display: flex; justify-content: center; gap: 20px; margin-top: 12px; color: #888; font-size: 0.8rem; }
+        
+        .attachments-area { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 20px; margin-top: 20px; }
+        .attachment-item { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 16px; flex-wrap: wrap; }
+        .attachment-preview { width: 70px; height: 70px; background: #1a472a; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 24px; }
+        .attachment-preview img { max-width: 100%; max-height: 100%; object-fit: cover; }
+        .attachment-info { flex: 1; min-width: 150px; }
+        .attachment-upload { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .attachment-upload input { flex: 1; min-width: 150px; }
+        
+        .vehicle-details-summary { background: rgba(0,0,0,0.3); border-radius: 16px; padding: 15px; margin-top: 15px; }
+        .vehicle-details-summary h5 { color: #c49a2b; margin-bottom: 10px; }
         
         @media (max-width: 768px) { .navbar { flex-direction: column; gap: 15px; } .form-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
-<div id="loginBg" class="login-bg">
-    <div class="gradient-bg"></div>
-</div>
+<canvas id="bg-canvas"></canvas>
+<div class="animated-bg"></div>
 
 <div id="loginPage" class="login-container">
     <div class="login-card">
@@ -178,14 +142,8 @@
         </div>
         <h2>محافظة الجيزة</h2>
         <p class="subtitle">منظومة المخلفات الصلبة - هيئة النظافة والتجميل</p>
-        <div class="input-group">
-            <input type="text" id="loginUsername" placeholder=" ">
-            <label>👤 اسم المستخدم</label>
-        </div>
-        <div class="input-group">
-            <input type="password" id="loginPassword" placeholder=" ">
-            <label>🔒 كلمة المرور</label>
-        </div>
+        <div class="input-group"><input type="text" id="loginUsername" placeholder=" "><label>👤 اسم المستخدم</label></div>
+        <div class="input-group"><input type="password" id="loginPassword" placeholder=" "><label>🔒 كلمة المرور</label></div>
         <div class="input-group">
             <select id="loginRole">
                 <option value="">اختر الجهة</option>
@@ -209,14 +167,11 @@
                 <text x="50" y="58" text-anchor="middle" fill="#c49a2b" font-size="28">🇪🇬</text>
                 <text x="50" y="75" text-anchor="middle" fill="white" font-size="8">الجيزة</text>
             </svg>
-            <div class="logo-text">
-                <h2>محافظة الجيزة</h2>
-                <p>هيئة النظافة والتجميل • منظومة المخلفات الصلبة</p>
-            </div>
+            <div class="logo-text"><h2 style="color:white;">محافظة الجيزة</h2><p style="color:rgba(255,255,255,0.7);">هيئة النظافة والتجميل</p></div>
         </div>
         <div class="user-info">
             <span>👤 <span id="userNameDisplay"></span></span>
-            <span><span id="userRoleDisplay"></span> <span id="userRoleBadge" class="user-role-badge"></span></span>
+            <span><span id="userRoleDisplay"></span> <span id="userRoleBadge" style="background:#c49a2b;color:#1a472a;padding:3px 10px;border-radius:20px;"></span></span>
             <span>📍 <span id="userDistrictDisplay"></span></span>
             <button class="logout-btn" id="logoutBtn">🚪 تسجيل خروج</button>
         </div>
@@ -226,171 +181,133 @@
     <div class="container">
         <!-- Dashboard -->
         <div id="dashboardPage">
-            <div class="stats-grid">
-                <div class="stat-card"><i class="fas fa-file-alt"></i><h3>إجمالي الطلبات</h3><div class="number" id="totalRequests">0</div></div>
-                <div class="stat-card"><i class="fas fa-money-bill-wave"></i><h3>إجمالي الإيرادات</h3><div class="number" id="totalRevenue">0 ج</div></div>
-                <div class="stat-card"><i class="fas fa-truck"></i><h3>حجم المخلفات</h3><div class="number" id="totalVolume">0 م³</div></div>
-                <div class="stat-card"><i class="fas fa-check-circle"></i><h3>طلبات معتمدة</h3><div class="number" id="totalApproved">0</div></div>
-            </div>
             <div class="card">
-                <h3>📋 آخر الطلبات المسجلة</h3>
-                <div style="overflow-x: auto;">
-                    <table id="recentTable">
-                        <thead><tr><th>رقم المعاملة</th><th>رقم الترخيص</th><th>المواطن</th><th>الحي</th><th>نوع العمل</th><th>الحجم</th><th>الحالة</th><th>الموافقة</th></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+                <h3>📋 الطلبات المسجلة</h3>
+                <div style="overflow-x:auto;"><table id="recentTable"><thead><tr><th>رقم المعاملة</th><th>رقم الترخيص</th><th>المواطن</th><th>الحي</th><th>الحالة</th><th>تاريخ الإضافة</th></thead><tbody></tbody></table></div>
             </div>
         </div>
 
-        <!-- New Request -->
+        <!-- صفحة إضافة طلب جديد (موظف حي) -->
         <div id="newRequestPage" class="hidden">
             <div class="card">
                 <h3>➕ تسجيل طلب رخصة بناء جديد</h3>
                 <div class="form-grid">
-                    <div class="form-group"><label><i class="fas fa-hashtag"></i> رقم المعاملة</label><input type="text" id="transactionNo" readonly></div>
-                    <div class="form-group"><label><i class="fas fa-id-card"></i> رقم الترخيص *</label><input type="text" id="licenseNo" placeholder="مثال: 2026/1234"></div>
-                    <div class="form-group"><label><i class="fas fa-id-card"></i> الرقم القومي *</label><input type="text" id="nationalId" maxlength="14" placeholder="14 رقم"></div>
-                    <div class="form-group"><label><i class="fas fa-user"></i> اسم المواطن *</label><input type="text" id="citizenName" placeholder="الاسم الكامل"></div>
-                    <div class="form-group"><label><i class="fas fa-phone"></i> رقم الهاتف *</label><input type="text" id="phone" placeholder="للاتصال"></div>
-                    <div class="form-group"><label><i class="fas fa-map-marker-alt"></i> الحي *</label><select id="district"><option value="">اختر الحي</option><option>بولاق الدكرور</option><option>العجوزة</option><option>الدقي</option><option>الهرم</option><option>الجيزة</option><option>إمبابة</option><option>أوسيم</option><option>كرداسة</option></select></div>
-                    <div class="form-group"><label><i class="fas fa-location-dot"></i> عنوان العقار *</label><input type="text" id="address" placeholder="الشارع - المنطقة"></div>
-                    <div class="form-group"><label><i class="fas fa-arrows-alt"></i> طول الأرض (م)</label><input type="number" id="length" step="0.5" value="10"></div>
-                    <div class="form-group"><label><i class="fas fa-arrows-alt-h"></i> عرض الأرض (م)</label><input type="number" id="width" step="0.5" value="10"></div>
-                    <div class="form-group"><label><i class="fas fa-draw-polygon"></i> المساحة (م²)</label><input type="text" id="area" readonly></div>
-                    <div class="form-group"><label><i class="fas fa-hard-hat"></i> نوع العمل *</label><div class="radio-group"><label><input type="radio" name="workType" value="هدم"> 🏚️ هدم</label><label><input type="radio" name="workType" value="حفر"> ⛏️ حفر</label><label><input type="radio" name="workType" value="ترميم"> 🔨 ترميم</label></div></div>
-                    <div id="depthField" class="dynamic-field hidden"><div class="form-group"><label><i class="fas fa-arrow-down"></i> عمق الحفر (م)</label><input type="number" id="depth" step="0.5" value="1"></div></div>
-                    <div id="floorsField" class="dynamic-field hidden"><div class="form-group"><label><i class="fas fa-building"></i> عدد الأدوار</label><input type="number" id="floors" step="1" value="1"></div></div>
-                    <div class="form-group"><label><i class="fas fa-cube"></i> حجم المخلفات (م³)</label><input type="number" id="volumeManual" step="0.5" placeholder="يتم حسابه تلقائياً"></div>
-                    <div class="form-group"><label><i class="fas fa-user-graduate"></i> المهندس المسئول *</label><input type="text" id="engineer" placeholder="اسم المهندس"></div>
-                    <div class="form-group"><label><i class="fas fa-credit-card"></i> طريقة الدفع *</label><div class="payment-methods"><div class="payment-option" data-payment="كاش">💰 كاش</div><div class="payment-option" data-payment="إنستا باي">📱 إنستا باي</div><div class="payment-option" data-payment="محفظة">💳 محفظة</div><div class="payment-option" data-payment="تحويل بنكي">🏦 تحويل بنكي</div></div></div>
+                    <div class="form-group"><label>رقم المعاملة</label><input type="text" id="transactionNo" readonly></div>
+                    <div class="form-group"><label>رقم الترخيص *</label><input type="text" id="licenseNo"></div>
+                    <div class="form-group"><label>الرقم القومي *</label><input type="text" id="nationalId" maxlength="14"></div>
+                    <div class="form-group"><label>اسم المواطن *</label><input type="text" id="citizenName"></div>
+                    <div class="form-group"><label>رقم الهاتف *</label><input type="text" id="phone"></div>
+                    <div class="form-group"><label>الحي *</label><select id="district"><option>بولاق الدكرور</option><option>العجوزة</option><option>الدقي</option><option>الهرم</option><option>الجيزة</option><option>إمبابة</option><option>أوسيم</option><option>كرداسة</option></select></div>
+                    <div class="form-group"><label>عنوان العقار *</label><input type="text" id="address"></div>
+                    <div class="form-group"><label>طول الأرض (م)</label><input type="number" id="length" step="0.5" value="10"></div>
+                    <div class="form-group"><label>عرض الأرض (م)</label><input type="number" id="width" step="0.5" value="10"></div>
+                    <div class="form-group"><label>المساحة (م²)</label><input type="text" id="area" readonly></div>
+                    <div class="form-group"><label>نوع العمل *</label><div class="radio-group"><label><input type="radio" name="workType" value="هدم"> 🏚️ هدم</label><label><input type="radio" name="workType" value="حفر"> ⛏️ حفر</label><label><input type="radio" name="workType" value="ترميم"> 🔨 ترميم</label></div></div>
+                    <div id="depthField" class="hidden"><div class="form-group"><label>عمق الحفر (م)</label><input type="number" id="depth" step="0.5" value="1"></div></div>
+                    <div id="floorsField" class="hidden"><div class="form-group"><label>عدد الأدوار</label><input type="number" id="floors" step="1" value="1"></div></div>
+                    <div class="form-group"><label>حجم المخلفات (م³)</label><input type="number" id="volumeManual" step="0.5"></div>
+                    <div class="form-group"><label>المهندس المسئول *</label><input type="text" id="engineer"></div>
+                    <div class="form-group"><label>طريقة الدفع *</label><div class="payment-methods"><div class="payment-option" data-payment="كاش">💰 كاش</div><div class="payment-option" data-payment="إنستا باي">📱 إنستا باي</div><div class="payment-option" data-payment="محفظة">💳 محفظة</div><div class="payment-option" data-payment="تحويل بنكي">🏦 تحويل بنكي</div></div></div>
                 </div>
-                
-                <div class="form-group"><label><i class="fas fa-map"></i> تحديد موقع العقار</label><div id="map"></div><button type="button" class="location-btn" id="getLocationBtn"><i class="fas fa-location-dot"></i> استخدام موقعي الحالي</button><input type="hidden" id="lat"><input type="hidden" id="lng"><div id="locationStatus" style="font-size:0.8rem;margin-top:8px;"></div></div>
-                
+                <div class="form-group"><label>📍 موقع العقار</label><div id="map"></div><button type="button" class="location-btn" id="getLocationBtn">🎯 استخدام موقعي الحالي</button><input type="hidden" id="lat"><input type="hidden" id="lng"></div>
                 <div class="calculator-modern">
-                    <h4><i class="fas fa-calculator"></i> تفاصيل الحساب</h4>
-                    <div class="calc-row"><div class="label"><i class="fas fa-cube"></i> حجم المخلفات</div><div class="value" id="displayVolume">0.00 م³</div></div>
-                    <div class="calc-row"><div class="label"><i class="fas fa-truck"></i> رسوم النقل والمعالجة</div><div class="value" id="displayItem1">0 ج</div></div>
-                    <div class="calc-row"><div class="label"><i class="fas fa-shield-alt"></i> مبلغ تأميني (قابل للرد)</div><div class="value" id="displayItem2">0 ج</div></div>
-                    <div class="calc-row"><div class="label"><i class="fas fa-percent"></i> ضريبة القيمة المضافة 14%</div><div class="value" id="displayItem3">0 ج</div></div>
-                    <div class="calc-row"><div class="label"><i class="fas fa-stamp"></i> رسوم دمغة وثابتة</div><div class="value" id="displayItem4">15 ج</div></div>
-                    <div class="calc-row total"><div class="label"><i class="fas fa-money-bill-wave"></i> الإجمالي المطلوب اليوم</div><div class="value" id="displayTotal">0 ج</div></div>
+                    <h4>📊 تفاصيل الحساب</h4>
+                    <div class="calc-row"><span>📦 حجم المخلفات</span><span id="displayVolume">0.00 م³</span></div>
+                    <div class="calc-row"><span>🚚 رسوم النقل (20 × الحجم)</span><span id="displayItem1">0 ج</span></div>
+                    <div class="calc-row"><span>🛡️ مبلغ تأميني (40 × الحجم)</span><span id="displayItem2">0 ج</span></div>
+                    <div class="calc-row"><span>📊 ضريبة 14%</span><span id="displayItem3">0 ج</span></div>
+                    <div class="calc-row"><span>📜 رسوم دمغة</span><span>15 ج</span></div>
+                    <div class="calc-row total"><span>💰 الإجمالي المطلوب</span><span id="displayTotal">0 ج</span></div>
                 </div>
-                
-                <button class="btn" id="saveRequestBtn"><i class="fas fa-save"></i> حفظ وإرسال لهيئة النظافة</button>
+                <button class="btn" id="saveRequestBtn">💾 حفظ الطلب</button>
             </div>
         </div>
 
-        <!-- Vehicle Assignment (موظف هيئة + مدير هيئة) -->
+        <!-- صفحة تعيين المركبة (موظف هيئة) - مع جميع تفاصيل المركبة -->
         <div id="vehiclePage" class="hidden">
             <div class="card">
-                <h3>🚚 إضافة مركبة إلى الطلب</h3>
-                <div class="form-grid">
-                    <div class="form-group"><label>رقم المعاملة</label><input type="text" id="vehicleTransactionNo" placeholder="أدخل رقم المعاملة"></div>
-                    <div class="form-group"><label>رقم الترخيص</label><input type="text" id="vehicleLicenseNo" placeholder="رقم الترخيص"></div>
+                <h3>🚚 تعيين مركبة ناقلة للحاويات</h3>
+                <div class="search-box">
+                    <input type="text" id="vehicleSearch" placeholder="🔍 بحث برقم المعاملة...">
+                    <button id="searchVehicleBtn" style="background:#c49a2b;border:none;border-radius:30px;padding:0 20px;cursor:pointer;">بحث</button>
                 </div>
-                <div id="vehicleRequestInfo" style="margin: 15px 0; padding: 15px; background: #f5f5f0; border-radius: 16px;"></div>
-                
-                <!-- 3D Vehicle Model Container -->
-                <div class="vehicle-3d-container" id="vehicle3dContainer" style="display: none;">
-                    <h4><i class="fas fa-cube"></i> نموذج المركبة ثلاثي الأبعاد</h4>
-                    <canvas id="vehicle3DCanvas"></canvas>
-                    <div class="vehicle-info-panel" id="vehicle3dInfo"></div>
+                <div id="vehicleRequestInfo" style="margin-top:20px;display:none;">
+                    <div style="background:rgba(255,255,255,0.1);border-radius:20px;padding:20px;">
+                        <div id="vehicleDetails"></div>
+                        
+                        <!-- نموذج السيارة ثلاثي الأبعاد المتطور -->
+                        <div class="vehicle-3d-container" id="vehicle3dContainer" style="display:none;">
+                            <h4><i class="fas fa-cube"></i> 🚛 نموذج المركبة ثلاثي الأبعاد</h4>
+                            <canvas id="vehicle3DCanvas"></canvas>
+                            <div class="controls-hint">
+                                <span><i class="fas fa-mouse-pointer"></i> اسحب لتدوير</span>
+                                <span><i class="fas fa-search-plus"></i> مرر للتكبير</span>
+                                <span><i class="fas fa-sync-alt"></i> دوران تلقائي</span>
+                            </div>
+                            <div id="3dColorStatus" style="text-align:center; margin-top:8px; color:#c49a2b; font-size:0.8rem;"></div>
+                        </div>
+                        
+                        <h4 style="color:#c49a2b; margin:20px 0 15px 0;"><i class="fas fa-truck"></i> جميع تفاصيل المركبة</h4>
+                        <div class="form-grid">
+                            <div class="form-group"><label><i class="fas fa-id-card"></i> رقم اللوحة *</label><input type="text" id="plateNumber" placeholder="مثال: س ص ط 1234"></div>
+                            <div class="form-group"><label><i class="fas fa-palette"></i> لون السيارة *</label><select id="vehicleColor"><option>أحمر</option><option>أزرق</option><option>أخضر</option><option>أصفر</option><option>أبيض</option><option>أسود</option><option>برتقالي</option></select></div>
+                            <div class="form-group"><label><i class="fas fa-user"></i> اسم صاحب المركبة *</label><input type="text" id="ownerName" placeholder="اسم المالك"></div>
+                            <div class="form-group"><label><i class="fas fa-calendar-alt"></i> تاريخ انتهاء الرخصة *</label><input type="date" id="licenseExpiry"></div>
+                            <div class="form-group"><label><i class="fas fa-tachometer-alt"></i> نوع المركبة *</label><select id="vehicleType"><option>قلاب</option><option>ضاغط نفايات</option><option>ونش</option><option>لودر</option><option>صندوق مغلق</option></select></div>
+                            <div class="form-group"><label><i class="fas fa-weight-hanging"></i> الحمولة القصوى (طن)</label><input type="number" id="capacity" step="0.5" placeholder="الحمولة بالطن"></div>
+                            <div class="form-group"><label><i class="fas fa-industry"></i> الموديل</label><input type="text" id="model" placeholder="سنة الصنع أو الموديل"></div>
+                            <div class="form-group"><label><i class="fas fa-charging-station"></i> نوع الوقود</label><select id="fuelType"><option>ديزل</option><option>بنزين</option><option>كهربائي</option><option>هايبرد</option></select></div>
+                            <div class="form-group"><label><i class="fas fa-user-tie"></i> اسم السائق *</label><input type="text" id="driverName" placeholder="اسم السائق المسئول"></div>
+                            <div class="form-group"><label><i class="fas fa-id-card"></i> رقم رخصة السائق</label><input type="text" id="driverLicense" placeholder="رقم رخصة القيادة"></div>
+                            <div class="form-group"><label><i class="fas fa-phone"></i> هاتف السائق *</label><input type="text" id="driverPhone" placeholder="رقم هاتف السائق"></div>
+                            <div class="form-group"><label><i class="fas fa-qrcode"></i> رقم الكارت المقدم لصاحب الطلب *</label><input type="text" id="cardNumber" placeholder="رقم الكارت التسلسلي"></div>
+                            <div class="form-group"><label><i class="fas fa-sticky-note"></i> ملاحظات إضافية</label><textarea id="vehicleNotes" rows="3" placeholder="أي ملاحظات عن المركبة أو الطلب..."></textarea></div>
+                        </div>
+                        
+                        <div class="vehicle-details-summary" id="vehicleSummary" style="display:none;">
+                            <h5><i class="fas fa-info-circle"></i> ملخص بيانات المركبة</h5>
+                            <div id="summaryContent"></div>
+                        </div>
+                        
+                        <button id="sendToDirectorBtn" class="btn btn-secondary" style="margin-top:20px;">📤 إرسال الملف إلى مدير الهيئة للموافقة النهائية</button>
+                    </div>
                 </div>
-                
-                <div class="form-grid" id="vehicleDetailsForm" style="display: none;">
-                    <div class="form-group"><label><i class="fas fa-truck"></i> رقم رخصة المركبة *</label><input type="text" id="vehicleLicenseNumber" placeholder="رقم رخصة المركبة"></div>
-                    <div class="form-group"><label><i class="fas fa-palette"></i> لون المركبة *</label><select id="vehicleColor"><option>أحمر</option><option>أزرق</option><option>أخضر</option><option>أصفر</option><option>أبيض</option><option>أسود</option><option>برتقالي</option></select></div>
-                    <div class="form-group"><label><i class="fas fa-id-card"></i> اسم صاحب الرخصة *</label><input type="text" id="vehicleOwnerName" placeholder="اسم صاحب الرخصة"></div>
-                    <div class="form-group"><label><i class="fas fa-calendar"></i> الموديل</label><input type="text" id="vehicleModel" placeholder="مثال: 2022"></div>
-                    <div class="form-group"><label><i class="fas fa-industry"></i> سنة الصنع</label><input type="number" id="vehicleYear" placeholder="سنة الصنع"></div>
-                    <div class="form-group"><label><i class="fas fa-weight-hanging"></i> الحمولة (طن)</label><input type="number" id="vehicleCapacity" step="0.5" placeholder="الحمولة بالطن"></div>
-                    <div class="form-group"><label><i class="fas fa-tachometer-alt"></i> نوع المركبة</label><select id="vehicleType"><option>قلاب</option><option>ضاغط نفايات</option><option>ونش</option><option>لودر</option><option>صندوق مغلق</option></select></div>
-                    <div class="form-group"><label><i class="fas fa-calendar-alt"></i> تاريخ انتهاء الرخصة</label><input type="date" id="vehicleExpiryDate"></div>
-                    <div class="form-group"><label><i class="fas fa-user"></i> اسم السائق</label><input type="text" id="driverName" placeholder="اسم السائق المسئول"></div>
-                    <div class="form-group"><label><i class="fas fa-id-card"></i> رقم رخصة السائق</label><input type="text" id="driverLicenseNumber" placeholder="رقم رخصة السائق"></div>
-                    <div class="form-group"><label><i class="fas fa-phone"></i> هاتف السائق</label><input type="text" id="driverPhone" placeholder="رقم هاتف السائق"></div>
-                </div>
-                <button class="btn btn-secondary" id="assignVehicleBtn" style="display: none;"><i class="fas fa-truck"></i> تعيين المركبة وإرسال للموافقة</button>
             </div>
         </div>
 
-        <!-- Approvals -->
+        <!-- صفحة الموافقات (مدير هيئة) -->
         <div id="approvalsPage" class="hidden">
             <div class="card">
-                <h3>✅ طلبات انتظار الموافقة</h3>
-                <div style="overflow-x: auto;">
+                <h3>✅ فحص نهائي وموافقة على الطلبات</h3>
+                <div style="overflow-x:auto;">
                     <table id="pendingApprovalsTable">
-                        <thead><tr><th>رقم المعاملة</th><th>رقم الترخيص</th><th>المواطن</th><th>الحي</th><th>المركبة</th><th>السائق</th><th>حجم المخلفات</th><th>الإجمالي</th><th>إجراء</th></thead>
+                        <thead><tr><th>رقم المعاملة</th><th>المواطن</th><th>الحي</th><th>المركبة</th><th>السائق</th><th>رقم الكارت</th><th>الحالة</th><th>إجراء</th></thead>
                         <tbody></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- Requests List -->
+        <!-- قائمة الطلبات -->
         <div id="requestsListPage" class="hidden">
             <div class="card">
-                <h3>📋 جميع طلبات تراخيص البناء</h3>
+                <h3>📋 قائمة الطلبات</h3>
                 <div class="search-box">
                     <input type="text" id="searchInput" placeholder="🔍 بحث...">
                     <select id="filterDistrict"><option value="">جميع الأحياء</option></select>
-                    <select id="filterStatus"><option value="">جميع الحالات</option><option value="pending">⏳ قيد الانتظار</option><option value="under_review">🔍 قيد المراجعة</option><option value="approved">✅ معتمد</option><option value="rejected">❌ مرفوض</option><option value="refunded">🔄 مسترد التأمين</option></select>
-                    <button id="refreshTableBtn" style="background:#1a472a;color:white;border:none;border-radius:30px;padding:0 20px;cursor:pointer;"><i class="fas fa-sync-alt"></i> تحديث</button>
+                    <select id="filterStatus"><option value="">جميع الحالات</option></select>
+                    <button id="refreshTableBtn" style="background:#c49a2b;border:none;border-radius:30px;padding:0 20px;">🔄 تحديث</button>
                 </div>
-                <div style="overflow-x: auto;">
-                    <table id="allRequestsTable">
-                        <thead><tr><th>رقم المعاملة</th><th>رقم الترخيص</th><th>المواطن</th><th>الحي</th><th>المهندس</th><th>الحجم</th><th>الإجمالي</th><th>المركبة</th><th>السائق</th><th>الحالة</th><th>كارت السائق</th><th></th></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-                <div class="button-group">
-                    <button class="btn-excel btn" id="exportExcelBtn"><i class="fas fa-file-excel"></i> Excel</button>
-                    <button class="btn-pdf btn" id="exportPdfBtn"><i class="fas fa-file-pdf"></i> PDF</button>
-                </div>
+                <div style="overflow-x:auto;"><table id="allRequestsTable"><thead><tr><th>رقم المعاملة</th><th>المواطن</th><th>الحي</th><th>المركبة</th><th>السائق</th><th>رقم الكارت</th><th>الحالة</th><th>كارت</th></thead><tbody></tbody></table></div>
             </div>
         </div>
 
-        <!-- Driver Card -->
+        <!-- كارت السائق -->
         <div id="driverCardPage" class="hidden">
             <div class="card">
                 <h3>🎫 كارت السائق - مقلب شبرا منت</h3>
-                <div class="form-group"><label>رقم المعاملة</label><input type="text" id="cardTransactionNo" placeholder="أدخل رقم المعاملة"></div>
+                <div class="form-group"><label>رقم المعاملة</label><input type="text" id="cardTransactionNo"></div>
                 <div id="driverCardResult"></div>
-            </div>
-        </div>
-
-        <!-- Refund -->
-        <div id="refundPage" class="hidden">
-            <div class="card">
-                <h3>🔄 استرداد المبلغ التأميني</h3>
-                <div class="form-grid">
-                    <div class="form-group"><label>رقم المعاملة</label><input type="text" id="refundTransactionNo" placeholder="رقم المعاملة"></div>
-                    <div class="form-group"><label>رقم الترخيص</label><input type="text" id="refundLicenseNo" placeholder="رقم الترخيص"></div>
-                    <div class="form-group"><label>رقم الهاتف</label><input type="text" id="refundPhone" placeholder="للتأكيد"></div>
-                </div>
-                <div id="refundInfo"></div>
-                <button class="btn btn-secondary" id="confirmRefundBtn"><i class="fas fa-check-circle"></i> تأكيد استرداد التأمين</button>
-            </div>
-        </div>
-
-        <!-- Users Management -->
-        <div id="usersPage" class="hidden">
-            <div class="card">
-                <h3>👥 إدارة المستخدمين والصلاحيات</h3>
-                <div class="form-grid">
-                    <div class="form-group"><label>اسم المستخدم</label><input type="text" id="newUsername" placeholder="اسم المستخدم"></div>
-                    <div class="form-group"><label>كلمة المرور</label><input type="password" id="newPassword" placeholder="كلمة المرور"></div>
-                    <div class="form-group"><label>الدور</label><select id="newRole"><option>موظف حي</option><option>مدير حي</option><option>موظف هيئة</option><option>مدير هيئة</option></select></div>
-                    <div class="form-group"><label>الحي</label><select id="newDistrict"><option>بولاق الدكرور</option><option>العجوزة</option><option>الدقي</option><option>الهرم</option><option>الجيزة</option><option>إمبابة</option><option>أوسيم</option><option>كرداسة</option></select></div>
-                </div>
-                <button class="btn" id="addUserBtn"><i class="fas fa-plus"></i> إضافة مستخدم</button>
-                <hr style="margin: 20px 0;">
-                <table id="usersTable">
-                    <thead><tr><th>المستخدم</th><th>الدور</th><th>الحي</th><th>الصلاحيات</th><th></th></thead>
-                    <tbody></tbody>
-                </table>
             </div>
         </div>
     </div>
@@ -401,1016 +318,562 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <script type="importmap">
-    {
-        "imports": {
-            "three": "https://unpkg.com/three@0.128.0/build/three.module.js"
-        }
-    }
+    { "imports": { "three": "https://unpkg.com/three@0.128.0/build/three.module.js" } }
 </script>
 
 <script type="module">
-    // =====================================================
-    // منظومة المخلفات الصلبة - محافظة الجيزة
-    // مع رسمة سيارة ثلاثية الأبعاد
-    // =====================================================
-    
     import * as THREE from 'three';
     import { OrbitControls } from 'https://unpkg.com/three@0.128.0/examples/jsm/controls/OrbitControls.js';
     
+    // =====================================================
+    // البيانات الأساسية
+    // =====================================================
     let currentUser = null;
     let map = null;
     let marker = null;
-    let scene3D = null;
-    let camera3D = null;
-    let renderer3D = null;
-    let vehicleModel = null;
+    let scene3D = null, camera3D = null, renderer3D = null, vehicleModel = null, vehicleControls = null;
+    let bgScene, bgCamera, bgRenderer, bgSphere;
     
-    // بيانات المستخدمين
+    // الصلاحيات حسب الدور
+    const permissions = {
+        'موظف حي': { addRequest: true, viewStats: false, followUp: false, addAttachments: false, assignVehicle: false, finalApprove: false },
+        'مدير حي': { addRequest: false, viewStats: false, followUp: true, addAttachments: true, assignVehicle: false, finalApprove: false },
+        'موظف هيئة': { addRequest: false, viewStats: false, followUp: false, addAttachments: false, assignVehicle: true, finalApprove: false },
+        'مدير هيئة': { addRequest: false, viewStats: true, followUp: false, addAttachments: false, assignVehicle: false, finalApprove: true }
+    };
+    
     let users = [
-        { id: 1, username: 'موظف_بولاق', password: '123', role: 'موظف حي', district: 'بولاق الدكرور', permissions: { add: true, edit: false, delete: false, viewAll: false, manageUsers: false, assignVehicle: false, approve: false, refund: false } },
-        { id: 2, username: 'مدير_بولاق', password: '123', role: 'مدير حي', district: 'بولاق الدكرور', permissions: { add: true, edit: true, delete: false, viewAll: false, manageUsers: false, assignVehicle: false, approve: false, refund: false } },
-        { id: 3, username: 'موظف_هيئة', password: '123', role: 'موظف هيئة', district: null, permissions: { add: false, edit: false, delete: false, viewAll: true, manageUsers: false, assignVehicle: true, approve: false, refund: false } },
-        { id: 4, username: 'مدير_هيئة', password: '123', role: 'مدير هيئة', district: null, permissions: { add: false, edit: true, delete: true, viewAll: true, manageUsers: true, assignVehicle: true, approve: true, refund: true } }
+        { id: 1, username: 'موظف_حي', password: '123', role: 'موظف حي', district: 'بولاق الدكرور' },
+        { id: 2, username: 'مدير_حي', password: '123', role: 'مدير حي', district: 'بولاق الدكرور' },
+        { id: 3, username: 'موظف_هيئة', password: '123', role: 'موظف هيئة', district: null },
+        { id: 4, username: 'مدير_هيئة', password: '123', role: 'مدير هيئة', district: null }
     ];
     
-    let requests = JSON.parse(localStorage.getItem('giza_requests')) || [];
+    let requests = JSON.parse(localStorage.getItem('giza_requests_final_v2')) || [];
     
-    function saveRequests() { localStorage.setItem('giza_requests', JSON.stringify(requests)); }
+    function saveRequests() { localStorage.setItem('giza_requests_final_v2', JSON.stringify(requests)); }
     
-    function showToast(message, type = 'success') {
+    function showToast(msg, type='success') {
         let toast = document.createElement('div');
         toast.className = 'toast-success';
-        toast.style.background = type === 'success' ? '#4caf50' : type === 'warning' ? '#ff9800' : '#d32f2f';
-        toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'exclamation-circle'}"></i> ${message}`;
+        toast.style.background = type === 'success' ? 'linear-gradient(135deg, #4caf50, #2e7d32)' : 'linear-gradient(135deg, #f44336, #c62828)';
+        toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${msg}`;
         document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
+        setTimeout(() => toast.remove(), 4000);
     }
     
     function generateTransactionNo() {
         let now = new Date();
         return `TR-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${Math.floor(Math.random()*10000)}`;
     }
+    function setTransactionNo() { const el = document.getElementById('transactionNo'); if(el) el.value = generateTransactionNo(); }
     
-    function setTransactionNo() { const input = document.getElementById('transactionNo'); if (input) input.value = generateTransactionNo(); }
-    
-    // دوال الحسابات
-    function calculateVolumeFromDimensions(workType, area, depth, floors) {
-        if (workType === 'حفر') return area * depth;
-        else if (workType === 'هدم') return area * floors * 0.5;
-        else return area * 0.3;
-    }
-    
-    function calculateFees(volume) {
-        let item1 = volume * 20;
-        let item2 = volume * 40;
-        let item3 = item2 * 0.14;
-        let item4 = 15;
-        let total = item1 + item2 + item3 + item4;
-        return { item1, item2, item3, item4, total };
-    }
-    
-    function updateCalculations() {
-        let length = parseFloat(document.getElementById('length')?.value) || 0;
-        let width = parseFloat(document.getElementById('width')?.value) || 0;
-        let area = length * width;
-        const areaField = document.getElementById('area');
-        if (areaField) areaField.value = area.toFixed(2) + ' م²';
+    // خلفية ثلاثية الأبعاد
+    function initBackground3D() {
+        const canvas = document.getElementById('bg-canvas');
+        bgScene = new THREE.Scene();
+        bgCamera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        bgRenderer = new THREE.WebGLRenderer({ canvas, alpha: true });
+        bgRenderer.setSize(window.innerWidth, window.innerHeight);
         
-        let workType = document.querySelector('input[name="workType"]:checked')?.value;
-        let depth = parseFloat(document.getElementById('depth')?.value) || 0;
-        let floors = parseFloat(document.getElementById('floors')?.value) || 0;
-        let calculatedVolume = calculateVolumeFromDimensions(workType, area, depth, floors);
-        let manualVolume = parseFloat(document.getElementById('volumeManual')?.value) || 0;
-        let volume = manualVolume > 0 ? manualVolume : calculatedVolume;
-        let fees = calculateFees(volume);
+        const geometry = new THREE.SphereGeometry(2, 64, 64);
+        const textureLoader = new THREE.TextureLoader();
+        const earthTexture = textureLoader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg');
+        bgSphere = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ map: earthTexture, roughness: 0.5 }));
+        bgScene.add(bgSphere);
         
-        const displayVolume = document.getElementById('displayVolume');
-        const displayItem1 = document.getElementById('displayItem1');
-        const displayItem2 = document.getElementById('displayItem2');
-        const displayItem3 = document.getElementById('displayItem3');
-        const displayTotal = document.getElementById('displayTotal');
+        const starGeometry = new THREE.BufferGeometry();
+        const starCount = 2000;
+        const starPositions = new Float32Array(starCount * 3);
+        for(let i=0; i<starCount; i++) { starPositions[i*3]=(Math.random()-0.5)*2000; starPositions[i*3+1]=(Math.random()-0.5)*1000; starPositions[i*3+2]=(Math.random()-0.5)*500-200; }
+        starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+        const stars = new THREE.Points(starGeometry, new THREE.PointsMaterial({ color: 0xffffff, size: 0.3 }));
+        bgScene.add(stars);
         
-        if (displayVolume) displayVolume.innerHTML = volume.toFixed(2) + ' م³';
-        if (displayItem1) displayItem1.innerHTML = Math.round(fees.item1) + ' ج';
-        if (displayItem2) displayItem2.innerHTML = Math.round(fees.item2) + ' ج';
-        if (displayItem3) displayItem3.innerHTML = Math.round(fees.item3) + ' ج';
-        if (displayTotal) displayTotal.innerHTML = Math.round(fees.total) + ' ج';
-        return { volume, fees, area };
+        const ringGeometry = new THREE.TorusGeometry(2.2, 0.05, 64, 500);
+        const ring = new THREE.Mesh(ringGeometry, new THREE.MeshStandardMaterial({ color: 0xc49a2b, emissive: 0xc49a2b, emissiveIntensity: 0.3 }));
+        bgScene.add(ring);
+        
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        bgScene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+        dirLight.position.set(5,10,7);
+        bgScene.add(dirLight);
+        
+        bgCamera.position.z = 8;
+        function animate() {
+            requestAnimationFrame(animate);
+            bgSphere.rotation.y += 0.002;
+            ring.rotation.x += 0.005;
+            ring.rotation.z += 0.003;
+            bgRenderer.render(bgScene, bgCamera);
+        }
+        animate();
+        window.addEventListener('resize', () => { bgCamera.aspect = window.innerWidth/window.innerHeight; bgCamera.updateProjectionMatrix(); bgRenderer.setSize(window.innerWidth, window.innerHeight); });
     }
     
-    function toggleDynamicFields() {
-        let workType = document.querySelector('input[name="workType"]:checked')?.value;
-        const depthField = document.getElementById('depthField');
-        const floorsField = document.getElementById('floorsField');
-        if (depthField) depthField.classList.toggle('hidden', workType !== 'حفر');
-        if (floorsField) floorsField.classList.toggle('hidden', workType !== 'هدم');
-        updateCalculations();
-    }
-    
-    // الخريطة
-    function initMap(lat = 30.0131, lng = 31.2089) {
-        const mapElement = document.getElementById('map');
-        if (!mapElement) return;
-        if (map) map.remove();
-        map = L.map('map').setView([lat, lng], 14);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
-        marker = L.marker([lat, lng], { draggable: true }).addTo(map);
-        marker.on('dragend', function(e) { let pos = marker.getLatLng(); const latInput = document.getElementById('lat'); const lngInput = document.getElementById('lng'); if (latInput) latInput.value = pos.lat; if (lngInput) lngInput.value = pos.lng; });
-        map.on('click', function(e) { marker.setLatLng(e.latlng); const latInput = document.getElementById('lat'); const lngInput = document.getElementById('lng'); if (latInput) latInput.value = e.latlng.lat; if (lngInput) lngInput.value = e.latlng.lng; });
-    }
-    
-    function getCurrentLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(pos => { initMap(pos.coords.latitude, pos.coords.longitude); const latInput = document.getElementById('lat'); const lngInput = document.getElementById('lng'); if (latInput) latInput.value = pos.coords.latitude; if (lngInput) lngInput.value = pos.coords.longitude; const statusDiv = document.getElementById('locationStatus'); if (statusDiv) statusDiv.innerHTML = '📍 تم تحديد موقعك'; }, err => alert('خطأ في تحديد الموقع'));
-        } else alert('المتصفح لا يدعم تحديد الموقع');
-    }
-    
-    // ========== 3D Vehicle Functions ==========
-    function init3DVehicle(color = '#ff0000') {
+    // نموذج سيارة ثلاثي الأبعاد متطور
+    function init3DVehicle(color = '#ff3333') {
         const canvas = document.getElementById('vehicle3DCanvas');
-        if (!canvas) return;
-        
+        if(!canvas) return;
         const container = canvas.parentElement;
         const width = container.clientWidth;
-        const height = 300;
+        const height = 380;
+        if(scene3D) { if(renderer3D) renderer3D.dispose(); scene3D = null; }
         
         scene3D = new THREE.Scene();
         scene3D.background = new THREE.Color(0x0a0a2a);
         scene3D.fog = new THREE.FogExp2(0x0a0a2a, 0.008);
         
-        camera3D = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+        camera3D = new THREE.PerspectiveCamera(45, width/height, 0.1, 1000);
         camera3D.position.set(5, 3, 8);
-        camera3D.lookAt(0, 0, 0);
         
         renderer3D = new THREE.WebGLRenderer({ canvas, antialias: true });
         renderer3D.setSize(width, height);
         renderer3D.shadowMap.enabled = true;
         
-        const controls = new OrbitControls(camera3D, renderer3D.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = 2;
-        controls.enableZoom = true;
-        controls.enablePan = true;
-        controls.target.set(0, 0.5, 0);
+        vehicleControls = new OrbitControls(camera3D, renderer3D.domElement);
+        vehicleControls.enableDamping = true;
+        vehicleControls.dampingFactor = 0.05;
+        vehicleControls.autoRotate = true;
+        vehicleControls.autoRotateSpeed = 1.5;
+        vehicleControls.enableZoom = true;
+        vehicleControls.enablePan = true;
+        vehicleControls.target.set(0, 0.5, 0);
         
-        // Lights
         const ambientLight = new THREE.AmbientLight(0x404040);
         scene3D.add(ambientLight);
-        
         const mainLight = new THREE.DirectionalLight(0xffffff, 1);
-        mainLight.position.set(5, 10, 7);
+        mainLight.position.set(5,10,7);
         mainLight.castShadow = true;
-        mainLight.receiveShadow = true;
         scene3D.add(mainLight);
-        
         const fillLight = new THREE.PointLight(0x404060, 0.5);
-        fillLight.position.set(-2, 3, 4);
+        fillLight.position.set(-2,3,4);
         scene3D.add(fillLight);
-        
         const backLight = new THREE.PointLight(0xffaa66, 0.3);
-        backLight.position.set(0, 2, -5);
+        backLight.position.set(0,2,-5);
         scene3D.add(backLight);
         
-        const rimLight = new THREE.PointLight(0xffaa66, 0.4);
-        rimLight.position.set(3, 2, -2);
-        scene3D.add(rimLight);
-        
-        // Ground grid
         const gridHelper = new THREE.GridHelper(20, 20, 0x88aaff, 0x335588);
         gridHelper.position.y = -0.5;
         scene3D.add(gridHelper);
         
-        // Create vehicle group
         vehicleModel = new THREE.Group();
+        const colorMap = { 'أحمر':0xff3333, 'أزرق':0x3366ff, 'أخضر':0x33cc33, 'أصفر':0xffcc00, 'أبيض':0xeeeeee, 'أسود':0x333333, 'برتقالي':0xff8800 };
+        const vehicleColor = colorMap[color] || 0xff3333;
         
-        // Convert color string to THREE.Color
-        let vehicleColor;
-        const colorMap = {
-            'أحمر': 0xff3333, 'أزرق': 0x3366ff, 'أخضر': 0x33cc33, 'أصفر': 0xffcc00,
-            'أبيض': 0xeeeeee, 'أسود': 0x333333, 'برتقالي': 0xff8800
-        };
-        vehicleColor = colorMap[color] || 0xff3333;
-        
-        // Body (main cabin)
-        const bodyGeo = new THREE.BoxGeometry(1.8, 0.8, 3.5);
-        const bodyMat = new THREE.MeshStandardMaterial({ color: vehicleColor, roughness: 0.3, metalness: 0.7 });
-        const body = new THREE.Mesh(bodyGeo, bodyMat);
-        body.position.set(0, 0.4, 0);
+        // Body
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.8, 3.5), new THREE.MeshStandardMaterial({ color: vehicleColor, roughness: 0.3, metalness: 0.7 }));
+        body.position.set(0,0.4,0);
         body.castShadow = true;
-        body.receiveShadow = true;
         vehicleModel.add(body);
         
         // Roof
-        const roofGeo = new THREE.BoxGeometry(1.4, 0.4, 2.2);
-        const roofMat = new THREE.MeshStandardMaterial({ color: 0xccccdd, roughness: 0.2, metalness: 0.8 });
-        const roof = new THREE.Mesh(roofGeo, roofMat);
-        roof.position.set(0, 0.85, -0.3);
-        roof.castShadow = true;
+        const roof = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.4, 2.2), new THREE.MeshStandardMaterial({ color: 0xccccdd, roughness: 0.2, metalness: 0.8 }));
+        roof.position.set(0,0.85,-0.3);
         vehicleModel.add(roof);
         
         // Windshield
-        const glassMat = new THREE.MeshStandardMaterial({ color: 0x88aaff, roughness: 0.1, metalness: 0.9, emissive: 0x112233 });
-        const windshieldGeo = new THREE.BoxGeometry(1.3, 0.25, 1.2);
-        const windshield = new THREE.Mesh(windshieldGeo, glassMat);
-        windshield.position.set(0, 0.7, -1.1);
+        const windshield = new THREE.Mesh(new THREE.BoxGeometry(1.3,0.25,1.2), new THREE.MeshStandardMaterial({ color: 0x88aaff, roughness: 0.1, metalness: 0.9, emissive: 0x112233 }));
+        windshield.position.set(0,0.7,-1.1);
         vehicleModel.add(windshield);
         
         // Hood
-        const hoodGeo = new THREE.BoxGeometry(1.6, 0.3, 1);
-        const hoodMat = new THREE.MeshStandardMaterial({ color: vehicleColor, roughness: 0.4 });
-        const hood = new THREE.Mesh(hoodGeo, hoodMat);
-        hood.position.set(0, 0.5, 1.2);
+        const hood = new THREE.Mesh(new THREE.BoxGeometry(1.6,0.3,1), new THREE.MeshStandardMaterial({ color: vehicleColor, roughness: 0.4 }));
+        hood.position.set(0,0.5,1.2);
         vehicleModel.add(hood);
         
         // Wheels
-        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.5, metalness: 0.3 });
-        const wheelGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.5, 24);
-        
-        const positions = [[-0.9, 0.1, -1.2], [0.9, 0.1, -1.2], [-0.9, 0.1, 1.1], [0.9, 0.1, 1.1]];
+        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.5 });
+        const wheelGeo = new THREE.CylinderGeometry(0.45,0.45,0.5,24);
+        const positions = [[-0.9,0.1,-1.2],[0.9,0.1,-1.2],[-0.9,0.1,1.1],[0.9,0.1,1.1]];
         positions.forEach(pos => {
             const wheel = new THREE.Mesh(wheelGeo, wheelMat);
-            wheel.rotation.z = Math.PI / 2;
-            wheel.position.set(pos[0], pos[1], pos[2]);
+            wheel.rotation.z = Math.PI/2;
+            wheel.position.set(pos[0],pos[1],pos[2]);
             wheel.castShadow = true;
             vehicleModel.add(wheel);
-            
-            const rimGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.51, 8);
-            const rimMat = new THREE.MeshStandardMaterial({ color: 0xccccaa, metalness: 0.8, roughness: 0.2 });
-            const rim = new THREE.Mesh(rimGeo, rimMat);
-            rim.rotation.z = Math.PI / 2;
-            rim.position.set(pos[0], pos[1], pos[2]);
+            const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,0.51,8), new THREE.MeshStandardMaterial({ color: 0xccccaa, metalness: 0.8 }));
+            rim.rotation.z = Math.PI/2;
+            rim.position.set(pos[0],pos[1],pos[2]);
             vehicleModel.add(rim);
         });
         
         // Headlights
         const lightMat = new THREE.MeshStandardMaterial({ color: 0xffaa66, emissive: 0xff4411, emissiveIntensity: 0.5 });
-        const leftLight = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 16), lightMat);
-        leftLight.position.set(-0.6, 0.35, 1.85);
+        const leftLight = new THREE.Mesh(new THREE.SphereGeometry(0.15,16,16), lightMat);
+        leftLight.position.set(-0.6,0.35,1.85);
         vehicleModel.add(leftLight);
-        
-        const rightLight = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 16), lightMat);
-        rightLight.position.set(0.6, 0.35, 1.85);
+        const rightLight = new THREE.Mesh(new THREE.SphereGeometry(0.15,16,16), lightMat);
+        rightLight.position.set(0.6,0.35,1.85);
         vehicleModel.add(rightLight);
         
         // Taillights
         const tailMat = new THREE.MeshStandardMaterial({ color: 0xff3333, emissive: 0xff0000, emissiveIntensity: 0.3 });
-        const leftTail = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), tailMat);
-        leftTail.position.set(-0.6, 0.35, -1.75);
+        const leftTail = new THREE.Mesh(new THREE.SphereGeometry(0.12,16,16), tailMat);
+        leftTail.position.set(-0.6,0.35,-1.75);
         vehicleModel.add(leftTail);
-        
-        const rightTail = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), tailMat);
-        rightTail.position.set(0.6, 0.35, -1.75);
+        const rightTail = new THREE.Mesh(new THREE.SphereGeometry(0.12,16,16), tailMat);
+        rightTail.position.set(0.6,0.35,-1.75);
         vehicleModel.add(rightTail);
         
         scene3D.add(vehicleModel);
         
         // Stars background
         const starGeometry = new THREE.BufferGeometry();
-        const starCount = 500;
-        const starPositions = new Float32Array(starCount * 3);
-        for (let i = 0; i < starCount; i++) {
-            starPositions[i*3] = (Math.random() - 0.5) * 200;
-            starPositions[i*3+1] = (Math.random() - 0.5) * 100 + 20;
-            starPositions[i*3+2] = (Math.random() - 0.5) * 100 - 50;
-        }
-        starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-        const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.15 });
-        const stars = new THREE.Points(starGeometry, starMat);
-        scene3D.add(stars);
+        const starPositions2 = new Float32Array(500 * 3);
+        for(let i=0;i<500;i++) { starPositions2[i*3]=(Math.random()-0.5)*200; starPositions2[i*3+1]=(Math.random()-0.5)*100+20; starPositions2[i*3+2]=(Math.random()-0.5)*100-50; }
+        starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions2, 3));
+        scene3D.add(new THREE.Points(starGeometry, new THREE.PointsMaterial({ color: 0xffffff, size: 0.15 })));
         
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer3D.render(scene3D, camera3D);
-        }
+        function animate() { requestAnimationFrame(animate); vehicleControls.update(); renderer3D.render(scene3D, camera3D); }
         animate();
-        
-        window.addEventListener('resize', () => {
-            const newWidth = container.clientWidth;
-            camera3D.aspect = newWidth / height;
-            camera3D.updateProjectionMatrix();
-            renderer3D.setSize(newWidth, height);
-        });
+        window.addEventListener('resize', () => { const w = container.clientWidth; camera3D.aspect = w/height; camera3D.updateProjectionMatrix(); renderer3D.setSize(w, height); });
     }
     
     function update3DVehicleColor(color) {
-        if (!vehicleModel) return;
-        const colorMap = {
-            'أحمر': 0xff3333, 'أزرق': 0x3366ff, 'أخضر': 0x33cc33, 'أصفر': 0xffcc00,
-            'أبيض': 0xeeeeee, 'أسود': 0x333333, 'برتقالي': 0xff8800
-        };
+        if(!vehicleModel) return;
+        const colorMap = { 'أحمر':0xff3333, 'أزرق':0x3366ff, 'أخضر':0x33cc33, 'أصفر':0xffcc00, 'أبيض':0xeeeeee, 'أسود':0x333333, 'برتقالي':0xff8800 };
         const newColor = colorMap[color] || 0xff3333;
         vehicleModel.children.forEach(child => {
-            if (child.isMesh && (child.material?.color?.getHex() === 0xff3333 || 
-                child.material?.color?.getHex() === 0x3366ff ||
-                child.material?.color?.getHex() === 0x33cc33 ||
-                child.material?.color?.getHex() === 0xffcc00 ||
-                child.material?.color?.getHex() === 0xeeeeee ||
-                child.material?.color?.getHex() === 0x333333 ||
-                child.material?.color?.getHex() === 0xff8800)) {
-                if (child.material) child.material.color.setHex(newColor);
+            if(child.isMesh && child.material && child.material.color && 
+               (child.material.color.getHex() === 0xff3333 || child.material.color.getHex() === 0x3366ff ||
+                child.material.color.getHex() === 0x33cc33 || child.material.color.getHex() === 0xffcc00 ||
+                child.material.color.getHex() === 0xeeeeee || child.material.color.getHex() === 0x333333 ||
+                child.material.color.getHex() === 0xff8800)) {
+                child.material.color.setHex(newColor);
             }
         });
+        const statusSpan = document.getElementById('3dColorStatus');
+        if(statusSpan) statusSpan.innerHTML = `🎨 اللون المحدد: ${color}`;
     }
     
-    // ========== دوال الطلبات ==========
-    async function saveNewRequest() {
-        if (!currentUser?.permissions?.add) { showToast('❌ ليس لديك صلاحية لإضافة طلبات جديدة', 'error'); return; }
-        
-        const transactionNo = document.getElementById('transactionNo')?.value;
-        const licenseNo = document.getElementById('licenseNo')?.value;
-        const nationalId = document.getElementById('nationalId')?.value;
-        const citizenName = document.getElementById('citizenName')?.value;
-        const phone = document.getElementById('phone')?.value;
-        const district = document.getElementById('district')?.value;
-        const address = document.getElementById('address')?.value;
-        const workType = document.querySelector('input[name="workType"]:checked')?.value;
-        const engineer = document.getElementById('engineer')?.value;
-        const paymentMethod = document.querySelector('.payment-option.selected')?.dataset.payment;
-        const lat = document.getElementById('lat')?.value;
-        const lng = document.getElementById('lng')?.value;
-        const length = parseFloat(document.getElementById('length')?.value) || 0;
-        const width = parseFloat(document.getElementById('width')?.value) || 0;
-        const area = length * width;
-        const depth = parseFloat(document.getElementById('depth')?.value) || 0;
-        const floors = parseFloat(document.getElementById('floors')?.value) || 0;
-        const manualVolume = parseFloat(document.getElementById('volumeManual')?.value) || 0;
-        const calculatedVolume = calculateVolumeFromDimensions(workType, area, depth, floors);
-        const volume = manualVolume > 0 ? manualVolume : calculatedVolume;
-        const fees = calculateFees(volume);
-        
-        if (!licenseNo || !nationalId || nationalId.length !== 14 || !citizenName || !phone || !district || !address || !workType || !engineer || !paymentMethod) {
-            showToast('❌ الرجاء إدخال جميع البيانات المطلوبة', 'error');
-            return;
-        }
-        
-        const requestData = {
-            id: Date.now(), transactionNo, licenseNo, nationalId, citizenName, phone, district, address, workType,
-            length, width, area, depth, floors, volume, engineer, paymentMethod, lat, lng,
-            total: fees.total, item2: fees.item2,
-            status: 'pending', approvalStatus: 'pending', vehicleAssigned: null,
-            createdAt: new Date().toISOString()
-        };
-        
-        requests.push(requestData);
-        saveRequests();
-        
-        showToast(`✅ تم تسجيل الطلب بنجاح! رقم المعاملة: ${transactionNo}`);
-        await loadDashboardStats();
-        await loadDashboard();
-        await loadAllRequests();
-        
-        const fields = ['licenseNo', 'nationalId', 'citizenName', 'phone', 'address', 'engineer', 'volumeManual'];
-        fields.forEach(f => { const el = document.getElementById(f); if (el) el.value = ''; });
-        if (document.getElementById('district')) document.getElementById('district').value = '';
-        document.querySelectorAll('input[name="workType"]').forEach(r => r.checked = false);
-        document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
-        setTransactionNo();
+    // حسابات
+    function calcVolume(workType, area, depth, floors) {
+        if(workType === 'حفر') return area * depth;
+        if(workType === 'هدم') return area * floors * 0.5;
+        return area * 0.3;
+    }
+    function calcFees(vol) { let i1=vol*20, i2=vol*40, i3=i2*0.14, total=i1+i2+i3+15; return { i1,i2,i3,total }; }
+    
+    function updateCalculations() {
+        let l = parseFloat(document.getElementById('length')?.value)||0, w = parseFloat(document.getElementById('width')?.value)||0, area = l*w;
+        document.getElementById('area').value = area.toFixed(2)+' م²';
+        let workType = document.querySelector('input[name="workType"]:checked')?.value;
+        let depth = parseFloat(document.getElementById('depth')?.value)||0, floors = parseFloat(document.getElementById('floors')?.value)||0;
+        let calcVol = calcVolume(workType, area, depth, floors);
+        let manual = parseFloat(document.getElementById('volumeManual')?.value)||0;
+        let vol = manual > 0 ? manual : calcVol;
+        let fees = calcFees(vol);
+        document.getElementById('displayVolume').innerHTML = vol.toFixed(2)+' م³';
+        document.getElementById('displayItem1').innerHTML = Math.round(fees.i1)+' ج';
+        document.getElementById('displayItem2').innerHTML = Math.round(fees.i2)+' ج';
+        document.getElementById('displayItem3').innerHTML = Math.round(fees.i3)+' ج';
+        document.getElementById('displayTotal').innerHTML = Math.round(fees.total)+' ج';
+        return { vol, fees, area };
+    }
+    
+    function toggleDynamicFields() {
+        let workType = document.querySelector('input[name="workType"]:checked')?.value;
+        document.getElementById('depthField').classList.toggle('hidden', workType !== 'حفر');
+        document.getElementById('floorsField').classList.toggle('hidden', workType !== 'هدم');
         updateCalculations();
     }
     
-    async function loadDashboardStats() {
-        let filtered = [...requests];
-        if (currentUser?.role === 'موظف حي' || currentUser?.role === 'مدير حي') filtered = filtered.filter(r => r.district === currentUser.district);
-        
-        const totalRequestsEl = document.getElementById('totalRequests');
-        const totalRevenueEl = document.getElementById('totalRevenue');
-        const totalVolumeEl = document.getElementById('totalVolume');
-        const totalApprovedEl = document.getElementById('totalApproved');
-        
-        if (totalRequestsEl) totalRequestsEl.innerText = filtered.length;
-        const totalRevenue = filtered.reduce((sum, r) => sum + (r.total || 0), 0);
-        if (totalRevenueEl) totalRevenueEl.innerText = Math.round(totalRevenue) + ' ج';
-        const totalVolume = filtered.reduce((sum, r) => sum + (r.volume || 0), 0);
-        if (totalVolumeEl) totalVolumeEl.innerText = totalVolume.toFixed(1) + ' م³';
-        const approved = filtered.filter(r => r.approvalStatus === 'approved').length;
-        if (totalApprovedEl) totalApprovedEl.innerText = approved;
+    function initMap(lat=30.0131, lng=31.2089) {
+        if(map) map.remove();
+        map = L.map('map').setView([lat,lng],14);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+        marker = L.marker([lat,lng], {draggable:true}).addTo(map);
+        marker.on('dragend', (e) => { let pos = marker.getLatLng(); document.getElementById('lat').value = pos.lat; document.getElementById('lng').value = pos.lng; });
+        map.on('click', (e) => { marker.setLatLng(e.latlng); document.getElementById('lat').value = e.latlng.lat; document.getElementById('lng').value = e.latlng.lng; });
+    }
+    function getCurrentLocation() {
+        if(navigator.geolocation) navigator.geolocation.getCurrentPosition(pos => initMap(pos.coords.latitude, pos.coords.longitude));
+        else alert('المتصفح لا يدعم');
+    }
+    
+    // حفظ طلب جديد (موظف حي)
+    async function saveNewRequest() {
+        if(!permissions[currentUser?.role]?.addRequest) { showToast('لا صلاحية للإضافة','error'); return; }
+        const data = {
+            transactionNo: document.getElementById('transactionNo').value,
+            licenseNo: document.getElementById('licenseNo').value,
+            nationalId: document.getElementById('nationalId').value,
+            citizenName: document.getElementById('citizenName').value,
+            phone: document.getElementById('phone').value,
+            district: document.getElementById('district').value,
+            address: document.getElementById('address').value,
+            workType: document.querySelector('input[name="workType"]:checked')?.value,
+            engineer: document.getElementById('engineer').value,
+            paymentMethod: document.querySelector('.payment-option.selected')?.dataset.payment,
+            lat: document.getElementById('lat').value, lng: document.getElementById('lng').value,
+            length: parseFloat(document.getElementById('length').value)||0,
+            width: parseFloat(document.getElementById('width').value)||0,
+            depth: parseFloat(document.getElementById('depth').value)||0,
+            floors: parseFloat(document.getElementById('floors').value)||0,
+            volumeManual: parseFloat(document.getElementById('volumeManual').value)||0
+        };
+        let area = data.length * data.width;
+        let calcVol = calcVolume(data.workType, area, data.depth, data.floors);
+        let vol = data.volumeManual > 0 ? data.volumeManual : calcVol;
+        let fees = calcFees(vol);
+        if(!data.licenseNo || data.nationalId.length!==14 || !data.citizenName || !data.phone || !data.district || !data.address || !data.workType || !data.engineer || !data.paymentMethod) {
+            showToast('الرجاء إدخال جميع البيانات','error'); return;
+        }
+        const request = {
+            id:Date.now(), ...data, area, volume:vol, total:fees.total, item2:fees.i2,
+            status:'pending', attachments:{}, vehicleAssigned:null, cardNumber:null,
+            createdAt:new Date().toISOString()
+        };
+        requests.push(request);
+        saveRequests();
+        showToast(`✅ تم تسجيل الطلب ${data.transactionNo}`);
+        await loadDashboard(); await loadAllRequests();
+        document.getElementById('licenseNo').value = ''; document.getElementById('nationalId').value = ''; document.getElementById('citizenName').value = ''; document.getElementById('phone').value = ''; document.getElementById('address').value = ''; document.getElementById('engineer').value = ''; document.querySelectorAll('input[name="workType"]').forEach(r=>r.checked=false); document.querySelectorAll('.payment-option').forEach(o=>o.classList.remove('selected')); setTransactionNo(); updateCalculations();
     }
     
     async function loadDashboard() {
         let filtered = [...requests];
-        if (currentUser?.role === 'موظف حي' || currentUser?.role === 'مدير حي') filtered = filtered.filter(r => r.district === currentUser.district);
-        const recent = filtered.reverse().slice(0, 10);
+        if(currentUser?.role === 'موظف حي' || currentUser?.role === 'مدير حي') filtered = filtered.filter(r=>r.district === currentUser.district);
         const tbody = document.querySelector('#recentTable tbody');
-        if (tbody) {
-            tbody.innerHTML = recent.map(r => `<tr>
-                <td>${r.transactionNo || ''}${''.fontsize(0)}</td>
-                <td>${r.licenseNo || ''}</td>
-                <td>${r.citizenName || ''}</td>
-                <td>${r.district || ''}</td>
-                <td>${r.workType || ''}</td>
-                <td>${(r.volume || 0).toFixed(2)}</td>
-                <td>${getStatusBadge(r.status, r.approvalStatus)}</td>
-                <td>${getApprovalBadge(r.approvalStatus)}</td>
-            </table>`).join('');
-        }
-    }
-    
-    function getStatusBadge(status, approvalStatus) {
-        if (approvalStatus === 'approved') return '<span class="status-approved">✅ معتمد</span>';
-        if (approvalStatus === 'rejected') return '<span class="status-rejected">❌ مرفوض</span>';
-        if (approvalStatus === 'under_review') return '<span class="status-under-review">🔍 قيد المراجعة</span>';
-        if (status === 'refunded') return '<span class="status-refunded">🔄 مسترد</span>';
-        return '<span class="status-pending">⏳ قيد الانتظار</span>';
-    }
-    
-    function getApprovalBadge(approvalStatus) {
-        if (approvalStatus === 'approved') return '<span class="status-approved">موافق</span>';
-        if (approvalStatus === 'rejected') return '<span class="status-rejected">مرفوض</span>';
-        if (approvalStatus === 'under_review') return '<span class="status-under-review">قيد المراجعة</span>';
-        return '<span class="status-pending">لم ترسل بعد</span>';
+        if(tbody) tbody.innerHTML = filtered.slice(-10).reverse().map(r=>`<tr>
+            <td>${r.transactionNo}${''.fontsize(0)}</td><td>${r.licenseNo}</td><td>${r.citizenName}</td><td>${r.district}</td>
+            <td>${r.status === 'approved' ? '<span class="status-approved">معتمد</span>' : r.status === 'sent_to_authority' ? '<span class="status-sent-to-authority">مرسل للهيئة</span>' : r.status === 'under_review' ? '<span class="status-under-review">قيد المراجعة</span>' : '<span class="status-pending">قيد الانتظار</span>'}</td>
+            <td>${new Date(r.createdAt).toLocaleDateString('ar-EG')}</td>
+        </tr>`).join('');
     }
     
     async function loadAllRequests() {
         let filtered = [...requests];
-        if (currentUser?.role === 'موظف حي' || currentUser?.role === 'مدير حي') filtered = filtered.filter(r => r.district === currentUser.district);
-        
-        const searchText = document.getElementById('searchInput')?.value.toLowerCase() || '';
-        const filterDistrict = document.getElementById('filterDistrict')?.value || '';
-        const filterStatus = document.getElementById('filterStatus')?.value || '';
-        
-        const finalFiltered = filtered.filter(r => {
-            const matchSearch = (r.transactionNo || '').toLowerCase().includes(searchText) || (r.licenseNo || '').toLowerCase().includes(searchText) || (r.citizenName || '').toLowerCase().includes(searchText);
-            const matchDistrict = !filterDistrict || r.district === filterDistrict;
-            const matchStatus = !filterStatus || r.approvalStatus === filterStatus || (filterStatus === 'pending' && r.approvalStatus === 'pending');
-            return matchSearch && matchDistrict && matchStatus;
-        });
-        
+        if(currentUser?.role === 'موظف حي' || currentUser?.role === 'مدير حي') filtered = filtered.filter(r=>r.district === currentUser.district);
+        const search = document.getElementById('searchInput')?.value.toLowerCase()||'';
+        const fDistrict = document.getElementById('filterDistrict')?.value||'';
+        const final = filtered.filter(r=>(r.transactionNo||'').toLowerCase().includes(search)||(r.citizenName||'').toLowerCase().includes(search));
         const tbody = document.querySelector('#allRequestsTable tbody');
-        if (tbody) {
-            if (finalFiltered.length === 0) {
-                tbody.innerHTML = '</table><td colspan="12" style="text-align:center;">📭 لا توجد طلبات حالياً</td></tr>';
-            } else {
-                tbody.innerHTML = finalFiltered.map(r => `<tr>
-                    <td>${r.transactionNo || ''}</td>
-                    <td>${r.licenseNo || ''}</td>
-                    <td>${r.citizenName || ''}</td>
-                    <td>${r.district || ''}</td>
-                    <td>${r.engineer || ''}</td>
-                    <td>${(r.volume || 0).toFixed(2)}</td>
-                    <td>${Math.round(r.total || 0)} ج</td>
-                    <td>${r.vehicleAssigned ? r.vehicleAssigned.vehicleType + ' - ' + r.vehicleAssigned.vehicleLicenseNumber : '❌ لم يتم تعيين'}</td>
-                    <td>${r.vehicleAssigned ? r.vehicleAssigned.driverName : '❌'}</td>
-                    <td>${getApprovalBadge(r.approvalStatus)}</td>
-                    <td>${r.vehicleAssigned ? `<button onclick="showDriverCard('${r.transactionNo}')" style="background:#c49a2b;color:white;border:none;border-radius:20px;padding:5px 10px;cursor:pointer;"><i class="fas fa-id-card"></i> عرض الكارت</button>` : '❌'}</td>
-                    <td>${currentUser?.permissions?.delete ? `<button onclick="deleteRequestById(${r.id})" style="background:#d32f2f;color:white;border:none;border-radius:20px;padding:5px 10px;cursor:pointer;"><i class="fas fa-trash"></i></button>` : ''}</td>
-                </tr>`).join('');
-            }
-        }
+        if(tbody) tbody.innerHTML = final.map(r=>`<tr>
+            <td>${r.transactionNo}</td><td>${r.citizenName}</td><td>${r.district}</td>
+            <td>${r.vehicleAssigned ? r.vehicleAssigned.vehicleType+' - '+r.vehicleAssigned.plateNumber : '❌'}</td>
+            <td>${r.vehicleAssigned ? r.vehicleAssigned.driverName : '❌'}</td>
+            <td>${r.cardNumber || '❌'}</td>
+            <td>${r.status === 'approved' ? '<span class="status-approved">معتمد</span>' : r.status === 'sent_to_authority' ? '<span class="status-sent-to-authority">مرسل للهيئة</span>' : r.status === 'under_review' ? '<span class="status-under-review">قيد المراجعة</span>' : '<span class="status-pending">قيد الانتظار</span>'}</td>
+            <td>${r.cardNumber ? `<button onclick="showDriverCard('${r.transactionNo}')" style="background:#c49a2b;border:none;border-radius:20px;padding:5px 10px;">🎫 كارت</button>` : '❌'}</td>
+        </tr>`).join('');
     }
     
-    window.deleteRequestById = async (id) => {
-        if (confirm('هل أنت متأكد من حذف هذا الطلب؟')) {
-            requests = requests.filter(r => r.id !== id);
-            saveRequests();
-            showToast('✅ تم حذف الطلب بنجاح');
-            await loadDashboardStats();
-            await loadDashboard();
-            await loadAllRequests();
-        }
+    window.showDriverCard = (transactionNo) => {
+        const r = requests.find(r=>r.transactionNo===transactionNo);
+        if(r && r.vehicleAssigned) {
+            document.getElementById('cardTransactionNo').value = transactionNo;
+            document.getElementById('driverCardResult').innerHTML = `<div class="driver-card"><h4>🎫 كارت السائق - مقلب شبرا منت</h4>
+                <div class="card-detail"><span>📋 رقم المعاملة:</span><span>${r.transactionNo}</span></div>
+                <div class="card-detail"><span>👤 المواطن:</span><span>${r.citizenName}</span></div>
+                <div class="card-detail"><span>🚚 رقم اللوحة:</span><span>${r.vehicleAssigned.plateNumber}</span></div>
+                <div class="card-detail"><span>🎨 لون المركبة:</span><span>${r.vehicleAssigned.vehicleColor}</span></div>
+                <div class="card-detail"><span>👤 مالك المركبة:</span><span>${r.vehicleAssigned.ownerName}</span></div>
+                <div class="card-detail"><span>📅 تاريخ انتهاء الرخصة:</span><span>${r.vehicleAssigned.licenseExpiry}</span></div>
+                <div class="card-detail"><span>🔧 نوع المركبة:</span><span>${r.vehicleAssigned.vehicleType}</span></div>
+                <div class="card-detail"><span>⚖️ الحمولة:</span><span>${r.vehicleAssigned.capacity || '-'} طن</span></div>
+                <div class="card-detail"><span>👨‍✈️ السائق:</span><span>${r.vehicleAssigned.driverName}</span></div>
+                <div class="card-detail"><span>📞 هاتف السائق:</span><span>${r.vehicleAssigned.driverPhone}</span></div>
+                <div class="card-detail"><span>🎫 رقم الكارت:</span><span><strong>${r.cardNumber}</strong></span></div>
+                <div class="card-detail"><span>💰 المبلغ التأميني:</span><span>${Math.round(r.item2)} ج</span></div>
+                <hr><div style="text-align:center;"><button onclick="window.print()" style="background:#1a472a;color:white;border:none;border-radius:20px;padding:8px 20px;">🖨️ طباعة الكارت</button></div></div>`;
+            document.querySelector('.nav-btn[data-page="driverCard"]').click();
+        } else showToast('لا توجد مركبة', 'error');
     };
     
-    window.showDriverCard = (transactionNo) => {
-        const request = requests.find(r => r.transactionNo === transactionNo);
-        if (request && request.vehicleAssigned) {
-            document.getElementById('cardTransactionNo').value = transactionNo;
-            document.getElementById('driverCardResult').innerHTML = `
-                <div class="driver-card">
-                    <h4><i class="fas fa-id-card"></i> كارت السائق - مقلب شبرا منت</h4>
-                    <div class="card-detail"><span>📋 رقم المعاملة:</span><span><strong>${request.transactionNo}</strong></span></div>
-                    <div class="card-detail"><span>📄 رقم الترخيص:</span><span>${request.licenseNo}</span></div>
-                    <div class="card-detail"><span>👤 اسم المواطن:</span><span>${request.citizenName}</span></div>
-                    <div class="card-detail"><span>📍 الحي:</span><span>${request.district}</span></div>
-                    <div class="card-detail"><span>🏠 عنوان العقار:</span><span>${request.address}</span></div>
-                    <div class="card-detail"><span>🚚 المركبة:</span><span>${request.vehicleAssigned.vehicleType} - ${request.vehicleAssigned.vehicleLicenseNumber}</span></div>
-                    <div class="card-detail"><span>🎨 لون المركبة:</span><span>${request.vehicleAssigned.vehicleColor || '-'}</span></div>
-                    <div class="card-detail"><span>👤 مالك المركبة:</span><span>${request.vehicleAssigned.vehicleOwnerName || '-'}</span></div>
-                    <div class="card-detail"><span>📅 الموديل/السنة:</span><span>${request.vehicleAssigned.vehicleModel || '-'} / ${request.vehicleAssigned.vehicleYear || '-'}</span></div>
-                    <div class="card-detail"><span>⚖️ الحمولة:</span><span>${request.vehicleAssigned.vehicleCapacity || '-'} طن</span></div>
-                    <div class="card-detail"><span>👨‍✈️ السائق:</span><span>${request.vehicleAssigned.driverName}</span></div>
-                    <div class="card-detail"><span>📞 هاتف السائق:</span><span>${request.vehicleAssigned.driverPhone}</span></div>
-                    <div class="card-detail"><span>✅ حالة الطلب:</span><span>${request.approvalStatus === 'approved' ? 'معتمد - يمكن استرداد التأمين' : request.approvalStatus === 'under_review' ? 'قيد المراجعة' : request.approvalStatus}</span></div>
-                    <div class="card-detail"><span>💰 المبلغ التأميني:</span><span>${Math.round(request.item2 || (request.volume * 40))} ج</span></div>
-                    <hr>
-                    <div style="text-align:center;"><button onclick="window.print()" style="background:#1a472a;color:white;border:none;border-radius:20px;padding:8px 20px;cursor:pointer;"><i class="fas fa-print"></i> طباعة الكارت</button></div>
+    // تعيين المركبة (موظف هيئة) - مع جميع التفاصيل
+    let currentVehicleRequest = null;
+    document.getElementById('searchVehicleBtn')?.addEventListener('click', () => {
+        const searchTerm = document.getElementById('vehicleSearch').value;
+        const req = requests.find(r=>r.transactionNo===searchTerm && r.status==='pending');
+        if(req) {
+            currentVehicleRequest = req;
+            document.getElementById('vehicleRequestInfo').style.display = 'block';
+            document.getElementById('vehicleDetails').innerHTML = `
+                <div class="form-grid">
+                    <div><strong>رقم المعاملة:</strong> ${req.transactionNo}</div>
+                    <div><strong>المواطن:</strong> ${req.citizenName}</div>
+                    <div><strong>الحي:</strong> ${req.district}</div>
+                    <div><strong>حجم المخلفات:</strong> ${req.volume.toFixed(2)} م³</div>
                 </div>
             `;
-            document.querySelector('.nav-btn[data-page="driverCard"]').click();
-        } else {
-            showToast('❌ لا توجد مركبة مخصصة لهذا الطلب', 'error');
-        }
-    };
-    
-    // ========== دوال المركبات والموافقات ==========
-    document.getElementById('vehicleTransactionNo')?.addEventListener('input', async function() {
-        const transactionNo = document.getElementById('vehicleTransactionNo').value;
-        const licenseNo = document.getElementById('vehicleLicenseNo').value;
-        if (transactionNo && licenseNo) {
-            const request = requests.find(r => r.transactionNo === transactionNo && r.licenseNo === licenseNo);
-            const infoDiv = document.getElementById('vehicleRequestInfo');
-            const formDiv = document.getElementById('vehicleDetailsForm');
-            const btn = document.getElementById('assignVehicleBtn');
-            const container3d = document.getElementById('vehicle3dContainer');
-            if (request) {
-                if (request.approvalStatus !== 'pending') {
-                    infoDiv.innerHTML = `<div style="background:#fff3e0;padding:15px;border-radius:16px;">⚠️ هذا الطلب حالته: ${request.approvalStatus} - لا يمكن تعديله</div>`;
-                    formDiv.style.display = 'none';
-                    btn.style.display = 'none';
-                    container3d.style.display = 'none';
+            document.getElementById('vehicle3dContainer').style.display = 'block';
+            init3DVehicle('أحمر');
+            const colorSelect = document.getElementById('vehicleColor');
+            if(colorSelect) colorSelect.onchange = () => update3DVehicleColor(colorSelect.value);
+            
+            // إظهار ملخص البيانات عند تغيير الحقول
+            const summaryDiv = document.getElementById('vehicleSummary');
+            const updateSummary = () => {
+                const plate = document.getElementById('plateNumber').value;
+                const color = document.getElementById('vehicleColor').value;
+                const owner = document.getElementById('ownerName').value;
+                const expiry = document.getElementById('licenseExpiry').value;
+                const vType = document.getElementById('vehicleType').value;
+                const driver = document.getElementById('driverName').value;
+                const card = document.getElementById('cardNumber').value;
+                if(plate || owner || driver || card) {
+                    summaryDiv.style.display = 'block';
+                    document.getElementById('summaryContent').innerHTML = `
+                        <div class="form-grid" style="margin-top:10px;">
+                            <div><strong>🚚 رقم اللوحة:</strong> ${plate || '-'}</div>
+                            <div><strong>🎨 اللون:</strong> ${color || '-'}</div>
+                            <div><strong>👤 المالك:</strong> ${owner || '-'}</div>
+                            <div><strong>📅 انتهاء الرخصة:</strong> ${expiry || '-'}</div>
+                            <div><strong>🔧 النوع:</strong> ${vType || '-'}</div>
+                            <div><strong>👨‍✈️ السائق:</strong> ${driver || '-'}</div>
+                            <div><strong>🎫 رقم الكارت:</strong> ${card || '-'}</div>
+                        </div>
+                    `;
                 } else {
-                    infoDiv.innerHTML = `<div style="background:#e8f5e9;padding:15px;border-radius:16px;">✅ تم العثور: ${request.citizenName}<br>📍 الحي: ${request.district}<br>📦 حجم المخلفات: ${request.volume.toFixed(2)} م³</div>`;
-                    formDiv.style.display = 'grid';
-                    btn.style.display = 'block';
-                    container3d.style.display = 'block';
-                    init3DVehicle('أحمر');
-                    
-                    // Add color change listener
-                    const colorSelect = document.getElementById('vehicleColor');
-                    if (colorSelect) {
-                        colorSelect.onchange = () => update3DVehicleColor(colorSelect.value);
-                    }
+                    summaryDiv.style.display = 'none';
                 }
-            } else {
-                infoDiv.innerHTML = `<div style="background:#ffe0e0;padding:15px;border-radius:16px;">❌ لم يتم العثور على الطلب</div>`;
-                formDiv.style.display = 'none';
-                btn.style.display = 'none';
-                container3d.style.display = 'none';
-            }
+            };
+            ['plateNumber', 'vehicleColor', 'ownerName', 'licenseExpiry', 'vehicleType', 'driverName', 'cardNumber'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.addEventListener('input', updateSummary);
+            });
+        } else {
+            showToast('لم يتم العثور على طلب', 'error');
         }
     });
     
-    document.getElementById('assignVehicleBtn')?.addEventListener('click', async () => {
-        if (!currentUser?.permissions?.assignVehicle) {
-            showToast('❌ ليس لديك صلاحية لتعيين مركبة', 'error');
+    document.getElementById('sendToDirectorBtn')?.addEventListener('click', () => {
+        if(!currentVehicleRequest) { showToast('ابحث عن الطلب أولاً','error'); return; }
+        const vehicleData = {
+            plateNumber: document.getElementById('plateNumber').value,
+            vehicleColor: document.getElementById('vehicleColor').value,
+            ownerName: document.getElementById('ownerName').value,
+            licenseExpiry: document.getElementById('licenseExpiry').value,
+            vehicleType: document.getElementById('vehicleType').value,
+            capacity: document.getElementById('capacity').value,
+            model: document.getElementById('model').value,
+            fuelType: document.getElementById('fuelType').value,
+            driverName: document.getElementById('driverName').value,
+            driverLicense: document.getElementById('driverLicense').value,
+            driverPhone: document.getElementById('driverPhone').value,
+            notes: document.getElementById('vehicleNotes').value
+        };
+        const cardNumber = document.getElementById('cardNumber').value;
+        if(!vehicleData.plateNumber || !vehicleData.vehicleColor || !vehicleData.ownerName || !vehicleData.licenseExpiry || !vehicleData.driverName || !vehicleData.driverPhone || !cardNumber) {
+            showToast('الرجاء إدخال جميع البيانات المطلوبة (اللوحة، اللون، المالك، تاريخ الانتهاء، السائق، هاتف السائق، رقم الكارت)','error');
             return;
         }
-        
-        const transactionNo = document.getElementById('vehicleTransactionNo').value;
-        const licenseNo = document.getElementById('vehicleLicenseNo').value;
-        const vehicleLicenseNumber = document.getElementById('vehicleLicenseNumber').value;
-        const vehicleColor = document.getElementById('vehicleColor').value;
-        const vehicleOwnerName = document.getElementById('vehicleOwnerName').value;
-        const vehicleModel = document.getElementById('vehicleModel').value;
-        const vehicleYear = document.getElementById('vehicleYear').value;
-        const vehicleCapacity = document.getElementById('vehicleCapacity').value;
-        const vehicleType = document.getElementById('vehicleType').value;
-        const vehicleExpiryDate = document.getElementById('vehicleExpiryDate').value;
-        const driverName = document.getElementById('driverName').value;
-        const driverLicenseNumber = document.getElementById('driverLicenseNumber').value;
-        const driverPhone = document.getElementById('driverPhone').value;
-        
-        if (!vehicleLicenseNumber || !vehicleColor || !vehicleOwnerName || !driverName || !driverPhone) {
-            showToast('❌ الرجاء إدخال جميع البيانات المطلوبة (رخصة المركبة، اللون، المالك، السائق)', 'error');
-            return;
-        }
-        
-        const request = requests.find(r => r.transactionNo === transactionNo && r.licenseNo === licenseNo);
-        if (request) {
-            request.vehicleAssigned = { 
-                vehicleLicenseNumber, vehicleColor, vehicleOwnerName, vehicleModel, vehicleYear, 
-                vehicleCapacity, vehicleType, vehicleExpiryDate, 
-                driverName, driverLicenseNumber, driverPhone 
-            };
-            request.approvalStatus = 'under_review';
-            saveRequests();
-            showToast('✅ تم تعيين المركبة وإرسال الطلب للموافقة');
-            document.getElementById('vehicleTransactionNo').value = '';
-            document.getElementById('vehicleLicenseNo').value = '';
-            document.getElementById('vehicleLicenseNumber').value = '';
-            document.getElementById('vehicleOwnerName').value = '';
-            document.getElementById('driverName').value = '';
-            document.getElementById('driverPhone').value = '';
-            document.getElementById('vehicleRequestInfo').innerHTML = '';
-            document.getElementById('vehicleDetailsForm').style.display = 'none';
-            document.getElementById('assignVehicleBtn').style.display = 'none';
-            document.getElementById('vehicle3dContainer').style.display = 'none';
-            await loadAllRequests();
-            await loadPendingApprovals();
-        }
+        currentVehicleRequest.vehicleAssigned = vehicleData;
+        currentVehicleRequest.cardNumber = cardNumber;
+        currentVehicleRequest.status = 'sent_to_authority';
+        saveRequests();
+        showToast(`✅ تم إرسال الطلب ${currentVehicleRequest.transactionNo} إلى مدير الهيئة للموافقة النهائية`);
+        document.getElementById('vehicleRequestInfo').style.display = 'none';
+        document.getElementById('vehicleSearch').value = '';
+        loadDashboard(); loadAllRequests(); loadPendingApprovals();
     });
     
     async function loadPendingApprovals() {
-        if (!currentUser?.permissions?.approve) return;
-        const pending = requests.filter(r => r.approvalStatus === 'under_review');
+        if(!permissions[currentUser?.role]?.finalApprove) return;
+        const pending = requests.filter(r=>r.status === 'sent_to_authority');
         const tbody = document.querySelector('#pendingApprovalsTable tbody');
-        if (tbody) {
-            if (pending.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">📭 لا توجد طلبات بانتظار الموافقة</td>'                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">📭 لا توجد طلبات بانتظار الموافقة</td></tr>';
-            } else {
-                tbody.innerHTML = pending.map(r => `<tr>
-                    <td>${r.transactionNo}</td>
-                    <td>${r.licenseNo}</td>
-                    <td>${r.citizenName}</td>
-                    <td>${r.district}</td>
-                    <td>${r.vehicleAssigned ? r.vehicleAssigned.vehicleType + ' - ' + r.vehicleAssigned.vehicleLicenseNumber : '-'}</td>
-                    <td>${r.vehicleAssigned ? r.vehicleAssigned.driverName : '-'}</td>
-                    <td>${r.volume.toFixed(2)} م³</td>
-                    <td>${Math.round(r.total)} ج</td>
-                    <td><button onclick="approveRequest('${r.transactionNo}')" style="background:#4caf50;color:white;border:none;border-radius:20px;padding:5px 10px;margin-left:5px;cursor:pointer;"><i class="fas fa-check"></i> موافقة</button><button onclick="rejectRequest('${r.transactionNo}')" style="background:#f44336;color:white;border:none;border-radius:20px;padding:5px 10px;cursor:pointer;"><i class="fas fa-times"></i> رفض</button></td>
-                </tr>`).join('');
-            }
-        }
+        if(tbody) tbody.innerHTML = pending.map(r=>`<tr>
+            <td>${r.transactionNo}</td><td>${r.citizenName}</td><td>${r.district}</td>
+            <td>${r.vehicleAssigned?.vehicleType} - ${r.vehicleAssigned?.plateNumber}</td>
+            <td>${r.vehicleAssigned?.driverName}</td>
+            <td><strong>${r.cardNumber}</strong></td>
+            <td><span class="status-under-review">قيد المراجعة</span></td>
+            <td><button onclick="finalApprove('${r.transactionNo}')" style="background:#4caf50;border:none;border-radius:20px;padding:5px 12px;margin-left:5px;">✅ موافقة</button>
+                <button onclick="finalReject('${r.transactionNo}')" style="background:#f44336;border:none;border-radius:20px;padding:5px 12px;">❌ رفض</button></td>
+        </tr>`).join('');
     }
     
-    window.approveRequest = (transactionNo) => {
-        if (!currentUser?.permissions?.approve) { showToast('❌ ليس لديك صلاحية للموافقة', 'error'); return; }
-        const request = requests.find(r => r.transactionNo === transactionNo);
-        if (request) {
-            request.approvalStatus = 'approved';
-            saveRequests();
-            showToast(`✅ تم اعتماد الطلب ${transactionNo}`);
-            loadPendingApprovals();
-            loadAllRequests();
-            loadDashboardStats();
-        }
+    window.finalApprove = (tNo) => {
+        let r = requests.find(r=>r.transactionNo===tNo);
+        if(r) { r.status='approved'; saveRequests(); showToast(`✅ تم اعتماد الطلب ${tNo}`); loadPendingApprovals(); loadAllRequests(); loadDashboard(); }
+    };
+    window.finalReject = (tNo) => {
+        let r = requests.find(r=>r.transactionNo===tNo);
+        if(r) { r.status='rejected'; saveRequests(); showToast(`❌ تم رفض الطلب ${tNo}`,'error'); loadPendingApprovals(); loadAllRequests(); loadDashboard(); }
     };
     
-    window.rejectRequest = (transactionNo) => {
-        if (!currentUser?.permissions?.approve) { showToast('❌ ليس لديك صلاحية للرفض', 'error'); return; }
-        const request = requests.find(r => r.transactionNo === transactionNo);
-        if (request) {
-            request.approvalStatus = 'rejected';
-            saveRequests();
-            showToast(`❌ تم رفض الطلب ${transactionNo}`, 'error');
-            loadPendingApprovals();
-            loadAllRequests();
-            loadDashboardStats();
-        }
-    };
-    
-    async function updateRefundStatusDB(transactionNo, licenseNo, phone) {
-        const request = requests.find(r => r.transactionNo === transactionNo && r.licenseNo === licenseNo && r.phone === phone);
-        if (request && request.approvalStatus === 'approved') {
-            request.approvalStatus = 'refunded';
-            saveRequests();
-            return { success: true };
-        } else if (request && request.approvalStatus !== 'approved') {
-            return { success: false, message: 'الطلب غير معتمد بعد' };
-        }
-        return { success: false, message: 'لم يتم العثور على الطلب' };
-    }
-    
-    // ========== دوال المستخدمين ==========
-    function getPermissionsByRole(role, district = null) {
-        switch(role) {
-            case 'موظف حي': return { add: true, edit: false, delete: false, viewAll: false, manageUsers: false, assignVehicle: false, approve: false, refund: false };
-            case 'مدير حي': return { add: true, edit: true, delete: false, viewAll: false, manageUsers: false, assignVehicle: false, approve: false, refund: false };
-            case 'موظف هيئة': return { add: false, edit: false, delete: false, viewAll: true, manageUsers: false, assignVehicle: true, approve: false, refund: false };
-            case 'مدير هيئة': return { add: false, edit: true, delete: true, viewAll: true, manageUsers: true, assignVehicle: true, approve: true, refund: true };
-            default: return { add: false, edit: false, delete: false, viewAll: false, manageUsers: false, assignVehicle: false, approve: false, refund: false };
-        }
-    }
-    
-    function loadUsersTable() {
-        const tbody = document.querySelector('#usersTable tbody');
-        if (tbody) {
-            tbody.innerHTML = users.map(u => `<tr>
-                <td>${u.username}</td>
-                <td>${u.role}</td>
-                <td>${u.district || '-'}</td>
-                <td>${getPermissionsText(u.permissions)}</td>
-                <td>${currentUser?.permissions?.manageUsers ? `<button onclick="deleteUserById(${u.id})" style="background:#d32f2f;color:white;border:none;border-radius:20px;padding:5px 10px;cursor:pointer;"><i class="fas fa-trash"></i></button>` : ''}</td>
-            </tr>`).join('');
-        }
-    }
-    
-    function getPermissionsText(permissions) {
-        if (!permissions) return '<span class="permission-badge permission-limited">عرض فقط</span>';
-        let text = [];
-        if (permissions.add) text.push('<span class="permission-badge permission-full">➕ إضافة</span>');
-        if (permissions.assignVehicle) text.push('<span class="permission-badge permission-full">🚚 تعيين مركبة</span>');
-        if (permissions.approve) text.push('<span class="permission-badge permission-full">✅ موافقة</span>');
-        if (permissions.refund) text.push('<span class="permission-badge permission-full">💰 استرداد</span>');
-        if (permissions.manageUsers) text.push('<span class="permission-badge permission-full">👥 مستخدمين</span>');
-        if (text.length === 0) text.push('<span class="permission-badge permission-limited">👁️ عرض فقط</span>');
-        return text.join(' ');
-    }
-    
-    window.deleteUserById = async (id) => {
-        if (confirm('هل أنت متأكد من حذف هذا المستخدم؟')) {
-            users = users.filter(u => u.id !== id);
-            showToast('✅ تم حذف المستخدم بنجاح');
-            loadUsersTable();
-        }
-    };
-    
-    // ========== بناء القوائم حسب الصلاحيات ==========
+    // بناء القوائم حسب الصلاحيات
     function setupNavLinks() {
-        const navContainer = document.getElementById('navLinks');
-        if (!navContainer) return;
-        
-        const pages = [{ key: 'dashboard', name: '📊 لوحة التحكم' }];
-        if (currentUser?.permissions?.add) pages.push({ key: 'newRequest', name: '📝 طلب جديد' });
-        if (currentUser?.permissions?.assignVehicle) pages.push({ key: 'vehicle', name: '🚚 تعيين مركبة' });
-        if (currentUser?.permissions?.approve) pages.push({ key: 'approvals', name: '✅ الموافقات' });
-        pages.push({ key: 'requestsList', name: '📋 قائمة الطلبات' });
-        pages.push({ key: 'driverCard', name: '🎫 كارت السائق' });
-        if (currentUser?.permissions?.refund) pages.push({ key: 'refund', name: '🔄 استرداد التأمين' });
-        if (currentUser?.permissions?.manageUsers) pages.push({ key: 'users', name: '👥 إدارة المستخدمين' });
-        
-        navContainer.innerHTML = pages.map(p => `<button class="nav-btn" data-page="${p.key}">${p.name}</button>`).join('');
-        
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                showPage(btn.dataset.page);
-            });
-        });
-        
+        const nav = document.getElementById('navLinks');
+        let pages = [{key:'dashboard',name:'📊 لوحة التحكم'}];
+        if(permissions[currentUser?.role]?.addRequest) pages.push({key:'newRequest',name:'📝 طلب جديد'});
+        if(permissions[currentUser?.role]?.assignVehicle) pages.push({key:'vehicle',name:'🚚 تعيين مركبة'});
+        if(permissions[currentUser?.role]?.finalApprove) pages.push({key:'approvals',name:'✅ الموافقات النهائية'});
+        pages.push({key:'requestsList',name:'📋 قائمة الطلبات'});
+        pages.push({key:'driverCard',name:'🎫 كارت السائق'});
+        nav.innerHTML = pages.map(p=>`<button class="nav-btn" data-page="${p.key}">${p.name}</button>`).join('');
+        document.querySelectorAll('.nav-btn').forEach(btn=>btn.addEventListener('click',()=>{ document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); showPage(btn.dataset.page); }));
         showPage('dashboard');
     }
     
-    function showPage(pageName) {
-        const pages = ['dashboardPage', 'newRequestPage', 'vehiclePage', 'approvalsPage', 'requestsListPage', 'driverCardPage', 'refundPage', 'usersPage'];
-        pages.forEach(p => { const el = document.getElementById(p); if (el) el.classList.add('hidden'); });
-        const activePage = document.getElementById(pageName + 'Page');
-        if (activePage) activePage.classList.remove('hidden');
-        
-        if (pageName === 'newRequest') { setTransactionNo(); if (typeof initMap === 'function') initMap(); updateCalculations(); }
-        if (pageName === 'users') loadUsersTable();
-        if (pageName === 'requestsList') loadAllRequests();
-        if (pageName === 'approvals') loadPendingApprovals();
-        if (pageName === 'dashboard') { loadDashboardStats(); loadDashboard(); }
+    function showPage(p) {
+        ['dashboardPage','newRequestPage','vehiclePage','approvalsPage','requestsListPage','driverCardPage'].forEach(pid=>document.getElementById(pid)?.classList.add('hidden'));
+        document.getElementById(p+'Page')?.classList.remove('hidden');
+        if(p==='newRequest') { setTransactionNo(); if(typeof initMap==='function') initMap(); updateCalculations(); }
+        if(p==='requestsList') loadAllRequests();
+        if(p==='approvals') loadPendingApprovals();
+        if(p==='dashboard') loadDashboard();
     }
     
-    // ========== استرداد التأمين ==========
-    document.getElementById('confirmRefundBtn')?.addEventListener('click', async () => {
-        if (!currentUser?.permissions?.refund) {
-            showToast('❌ ليس لديك صلاحية لاسترداد التأمين', 'error');
-            return;
-        }
-        
-        const transactionNo = document.getElementById('refundTransactionNo')?.value;
-        const licenseNo = document.getElementById('refundLicenseNo')?.value;
-        const phone = document.getElementById('refundPhone')?.value;
-        
-        if (!transactionNo || !licenseNo || !phone) {
-            showToast('❌ الرجاء إدخال جميع البيانات', 'error');
-            return;
-        }
-        
-        const result = await updateRefundStatusDB(transactionNo, licenseNo, phone);
-        if (result.success) {
-            showToast('✅ تم استرداد المبلغ التأميني');
-            const refundInputs = ['refundTransactionNo', 'refundLicenseNo', 'refundPhone'];
-            refundInputs.forEach(i => { const el = document.getElementById(i); if (el) el.value = ''; });
-            const refundInfo = document.getElementById('refundInfo');
-            if (refundInfo) refundInfo.innerHTML = '';
-            await loadDashboardStats();
-            await loadDashboard();
-            await loadAllRequests();
-        } else {
-            showToast(result.message || '❌ لم يتم العثور على الطلب', 'error');
-        }
-    });
-    
-    async function searchRefund() {
-        const transactionNo = document.getElementById('refundTransactionNo')?.value;
-        const licenseNo = document.getElementById('refundLicenseNo')?.value;
-        const phone = document.getElementById('refundPhone')?.value;
-        
-        if (transactionNo && licenseNo && phone) {
-            const req = requests.find(r => r.transactionNo === transactionNo && r.licenseNo === licenseNo && r.phone === phone);
-            const infoDiv = document.getElementById('refundInfo');
-            if (infoDiv) {
-                if (req && req.approvalStatus === 'approved') {
-                    infoDiv.innerHTML = `<div style="background:#e8f5e9;padding:15px;border-radius:16px;"><i class="fas fa-check-circle"></i> ✅ الطلب معتمد ويمكن استرداد المبلغ التأميني<br>💰 المبلغ: ${Math.round(req.item2 || (req.volume * 40))} ج</div>`;
-                } else if (req && req.approvalStatus === 'refunded') {
-                    infoDiv.innerHTML = `<div style="background:#fff3e0;padding:15px;border-radius:16px;"><i class="fas fa-info-circle"></i> ⚠️ تم استرداد المبلغ مسبقاً</div>`;
-                } else if (req && req.approvalStatus !== 'approved') {
-                    infoDiv.innerHTML = `<div style="background:#ffe0e0;padding:15px;border-radius:16px;"><i class="fas fa-exclamation-triangle"></i> ❌ الطلب غير معتمد بعد - حالته: ${req.approvalStatus}</div>`;
-                } else {
-                    infoDiv.innerHTML = `<div style="background:#ffe0e0;padding:15px;border-radius:16px;"><i class="fas fa-exclamation-triangle"></i> ❌ لم يتم العثور على الطلب</div>`;
-                }
-            }
-        }
-    }
-    
-    // ========== كارت السائق ==========
-    document.getElementById('cardTransactionNo')?.addEventListener('input', function() {
-        const transactionNo = this.value;
-        if (transactionNo) {
-            const request = requests.find(r => r.transactionNo === transactionNo);
-            const resultDiv = document.getElementById('driverCardResult');
-            if (request && request.vehicleAssigned) {
-                resultDiv.innerHTML = `
-                    <div class="driver-card">
-                        <h4><i class="fas fa-id-card"></i> كارت السائق - مقلب شبرا منت</h4>
-                        <div class="card-detail"><span>📋 رقم المعاملة:</span><span><strong>${request.transactionNo}</strong></span></div>
-                        <div class="card-detail"><span>📄 رقم الترخيص:</span><span>${request.licenseNo}</span></div>
-                        <div class="card-detail"><span>👤 اسم المواطن:</span><span>${request.citizenName}</span></div>
-                        <div class="card-detail"><span>📍 الحي:</span><span>${request.district}</span></div>
-                        <div class="card-detail"><span>🏠 عنوان العقار:</span><span>${request.address}</span></div>
-                        <div class="card-detail"><span>🚚 رقم رخصة المركبة:</span><span>${request.vehicleAssigned.vehicleLicenseNumber}</span></div>
-                        <div class="card-detail"><span>🎨 لون المركبة:</span><span>${request.vehicleAssigned.vehicleColor || '-'}</span></div>
-                        <div class="card-detail"><span>👤 مالك المركبة:</span><span>${request.vehicleAssigned.vehicleOwnerName || '-'}</span></div>
-                        <div class="card-detail"><span>📅 الموديل/السنة:</span><span>${request.vehicleAssigned.vehicleModel || '-'} / ${request.vehicleAssigned.vehicleYear || '-'}</span></div>
-                        <div class="card-detail"><span>⚖️ الحمولة:</span><span>${request.vehicleAssigned.vehicleCapacity || '-'} طن</span></div>
-                        <div class="card-detail"><span>🔧 نوع المركبة:</span><span>${request.vehicleAssigned.vehicleType || '-'}</span></div>
-                        <div class="card-detail"><span>👨‍✈️ السائق:</span><span>${request.vehicleAssigned.driverName}</span></div>
-                        <div class="card-detail"><span>📞 هاتف السائق:</span><span>${request.vehicleAssigned.driverPhone}</span></div>
-                        <div class="card-detail"><span>✅ حالة الطلب:</span><span>${request.approvalStatus === 'approved' ? 'معتمد - يمكن استرداد التأمين' : request.approvalStatus === 'under_review' ? 'قيد المراجعة' : request.approvalStatus}</span></div>
-                        <div class="card-detail"><span>💰 المبلغ التأميني:</span><span>${Math.round(request.item2 || (request.volume * 40))} ج</span></div>
-                        <hr>
-                        <div style="text-align:center;"><button onclick="window.print()" style="background:#1a472a;color:white;border:none;border-radius:20px;padding:8px 20px;cursor:pointer;"><i class="fas fa-print"></i> طباعة الكارت</button></div>
-                    </div>
-                `;
-            } else if (request && !request.vehicleAssigned) {
-                resultDiv.innerHTML = `<div style="background:#ffe0e0;padding:15px;border-radius:16px;">❌ لم يتم تعيين مركبة لهذا الطلب بعد</div>`;
-            } else {
-                resultDiv.innerHTML = `<div style="background:#ffe0e0;padding:15px;border-radius:16px;">❌ لم يتم العثور على الطلب</div>`;
-            }
-        }
-    });
-    
-    // ========== تسجيل الدخول ==========
-    document.getElementById('loginBtn')?.addEventListener('click', async function(e) {
-        e.preventDefault();
+    // Login
+    document.getElementById('loginBtn')?.addEventListener('click', () => {
         const username = document.getElementById('loginUsername').value;
         const password = document.getElementById('loginPassword').value;
         const role = document.getElementById('loginRole').value;
-        
-        if (!username || !password || !role) {
-            const errorDiv = document.getElementById('loginError');
-            errorDiv.innerText = '❌ الرجاء إدخال جميع البيانات';
-            errorDiv.classList.remove('hidden');
-            setTimeout(() => errorDiv.classList.add('hidden'), 3000);
-            return;
-        }
-        
-        const user = users.find(u => u.username === username && u.password === password && u.role === role);
-        
-        if (user) {
-            currentUser = { ...user, permissions: user.permissions || getPermissionsByRole(user.role, user.district) };
-            
+        const user = users.find(u=>u.username===username && u.password===password && u.role===role);
+        if(user) {
+            currentUser = user;
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             document.getElementById('userNameDisplay').innerText = currentUser.username;
             document.getElementById('userRoleDisplay').innerText = currentUser.role;
-            document.getElementById('userDistrictDisplay').innerText = currentUser.district || 'جميع الأحياء';
-            
-            let badgeText = '';
-            if (currentUser.permissions?.add) badgeText += '➕';
-            if (currentUser.permissions?.assignVehicle) badgeText += '🚚';
-            if (currentUser.permissions?.approve) badgeText += '✅';
-            if (currentUser.permissions?.refund) badgeText += '💰';
-            if (currentUser.permissions?.manageUsers) badgeText += '👥';
-            const roleBadge = document.getElementById('userRoleBadge');
-            if (roleBadge) roleBadge.innerText = badgeText;
-            
+            document.getElementById('userDistrictDisplay').innerText = currentUser.district || 'الكل';
+            let badge = '';
+            if(permissions[currentUser.role]?.addRequest) badge+='➕';
+            if(permissions[currentUser.role]?.assignVehicle) badge+='🚚';
+            if(permissions[currentUser.role]?.finalApprove) badge+='✅';
+            document.getElementById('userRoleBadge').innerText = badge;
             setupNavLinks();
-            await loadDashboardStats();
-            await loadDashboard();
-            await loadAllRequests();
-            loadDistrictsFilter();
-            showToast(`مرحباً ${currentUser.username} 👋`, 'success');
+            loadDashboard(); loadAllRequests(); loadDistrictsFilter();
+            showToast(`مرحباً ${currentUser.username}`);
         } else {
-            const errorDiv = document.getElementById('loginError');
-            errorDiv.innerText = '❌ اسم المستخدم أو كلمة المرور أو الجهة غير صحيحة';
-            errorDiv.classList.remove('hidden');
-            setTimeout(() => errorDiv.classList.add('hidden'), 3000);
+            document.getElementById('loginError').innerText = 'بيانات غير صحيحة';
+            document.getElementById('loginError').classList.remove('hidden');
+            setTimeout(()=>document.getElementById('loginError').classList.add('hidden'),3000);
         }
     });
+    document.getElementById('logoutBtn')?.addEventListener('click',()=>{ currentUser=null; document.getElementById('mainApp').classList.add('hidden'); document.getElementById('loginPage').classList.remove('hidden'); });
     
-    document.getElementById('logoutBtn')?.addEventListener('click', () => {
-        currentUser = null;
-        document.getElementById('mainApp').classList.add('hidden');
-        document.getElementById('loginPage').classList.remove('hidden');
-        const inputs = ['loginUsername', 'loginPassword'];
-        inputs.forEach(i => { const el = document.getElementById(i); if (el) el.value = ''; });
-        const roleSelect = document.getElementById('loginRole');
-        if (roleSelect) roleSelect.value = '';
-        const errorDiv = document.getElementById('loginError');
-        if (errorDiv) errorDiv.classList.add('hidden');
-    });
-    
-    // ========== تصدير التقارير ==========
-    document.getElementById('exportExcelBtn')?.addEventListener('click', async () => {
-        let filtered = [...requests];
-        if (currentUser?.role === 'موظف حي' || currentUser?.role === 'مدير حي') filtered = filtered.filter(r => r.district === currentUser.district);
-        
-        const data = filtered.map(r => ({
-            'رقم المعاملة': r.transactionNo,
-            'رقم الترخيص': r.licenseNo,
-            'المواطن': r.citizenName,
-            'الحي': r.district,
-            'المهندس': r.engineer,
-            'الحجم': (r.volume || 0).toFixed(2),
-            'الإجمالي': Math.round(r.total || 0),
-            'طريقة الدفع': r.paymentMethod,
-            'رقم رخصة المركبة': r.vehicleAssigned?.vehicleLicenseNumber || '-',
-            'لون المركبة': r.vehicleAssigned?.vehicleColor || '-',
-            'مالك المركبة': r.vehicleAssigned?.vehicleOwnerName || '-',
-            'الموديل': r.vehicleAssigned?.vehicleModel || '-',
-            'سنة الصنع': r.vehicleAssigned?.vehicleYear || '-',
-            'الحمولة (طن)': r.vehicleAssigned?.vehicleCapacity || '-',
-            'نوع المركبة': r.vehicleAssigned?.vehicleType || '-',
-            'السائق': r.vehicleAssigned?.driverName || '-',
-            'هاتف السائق': r.vehicleAssigned?.driverPhone || '-',
-            'حالة الموافقة': r.approvalStatus === 'approved' ? 'معتمد' : r.approvalStatus === 'rejected' ? 'مرفوض' : r.approvalStatus === 'under_review' ? 'قيد المراجعة' : 'قيد الانتظار'
-        }));
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'الطلبات');
-        XLSX.writeFile(wb, `طلبات_الجيزة_${new Date().toISOString().slice(0,10)}.xlsx`);
-        showToast('📊 تم تصدير التقرير بنجاح');
-    });
-    
-    document.getElementById('exportPdfBtn')?.addEventListener('click', async () => {
-        let filtered = [...requests];
-        if (currentUser?.role === 'موظف حي' || currentUser?.role === 'مدير حي') filtered = filtered.filter(r => r.district === currentUser.district);
-        
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({ orientation: 'landscape' });
-        const tableData = filtered.map(r => [r.transactionNo || '', r.licenseNo || '', r.citizenName || '', r.district || '', (r.volume || 0).toFixed(2), Math.round(r.total || 0) + ' ج', r.paymentMethod || '', r.vehicleAssigned?.driverName || '-', r.approvalStatus === 'approved' ? 'معتمد' : r.approvalStatus === 'rejected' ? 'مرفوض' : 'قيد الانتظار']);
-        doc.autoTable({
-            head: [['رقم المعاملة', 'رقم الترخيص', 'المواطن', 'الحي', 'الحجم', 'الإجمالي', 'طريقة الدفع', 'السائق', 'الحالة']],
-            body: tableData,
-            headStyles: { fillColor: [26, 71, 42] }
-        });
-        doc.save(`طلبات_الجيزة_${new Date().toISOString().slice(0,10)}.pdf`);
-        showToast('📄 تم تصدير التقرير بنجاح');
-    });
-    
-    // ========== إضافة مستخدم جديد ==========
-    document.getElementById('addUserBtn')?.addEventListener('click', () => {
-        if (!currentUser?.permissions?.manageUsers) {
-            showToast('❌ ليس لديك صلاحية لإضافة مستخدمين', 'error');
-            return;
-        }
-        
-        const username = document.getElementById('newUsername')?.value;
-        const password = document.getElementById('newPassword')?.value;
-        const role = document.getElementById('newRole')?.value;
-        const district = document.getElementById('newDistrict')?.value;
-        
-        if (!username || !password) {
-            showToast('❌ أدخل اسم المستخدم وكلمة المرور', 'error');
-            return;
-        }
-        
-        const newUser = {
-            id: Date.now(),
-            username, password, role,
-            district: (role === 'موظف حي' || role === 'مدير حي') ? district : null,
-            permissions: getPermissionsByRole(role, district)
-        };
-        
-        users.push(newUser);
-        showToast(`✅ تم إضافة المستخدم ${username}`);
-        const inputs = ['newUsername', 'newPassword'];
-        inputs.forEach(i => { const el = document.getElementById(i); if (el) el.value = ''; });
-        loadUsersTable();
-    });
-    
-    // ========== ربط الأحداث ==========
+    // Events
     document.getElementById('saveRequestBtn')?.addEventListener('click', saveNewRequest);
     document.getElementById('getLocationBtn')?.addEventListener('click', getCurrentLocation);
-    document.getElementById('refreshTableBtn')?.addEventListener('click', () => { loadAllRequests(); showToast('🔄 تم تحديث الجدول'); });
+    document.getElementById('refreshTableBtn')?.addEventListener('click', ()=>{ loadAllRequests(); showToast('تم التحديث'); });
     document.getElementById('volumeManual')?.addEventListener('input', updateCalculations);
-    document.getElementById('refundTransactionNo')?.addEventListener('input', searchRefund);
-    document.getElementById('refundLicenseNo')?.addEventListener('input', searchRefund);
-    document.getElementById('refundPhone')?.addEventListener('input', searchRefund);
-    
-    const lengthInput = document.getElementById('length');
-    const widthInput = document.getElementById('width');
-    const depthInput = document.getElementById('depth');
-    const floorsInput = document.getElementById('floors');
-    if (lengthInput) lengthInput.addEventListener('input', updateCalculations);
-    if (widthInput) widthInput.addEventListener('input', updateCalculations);
-    if (depthInput) depthInput.addEventListener('input', updateCalculations);
-    if (floorsInput) floorsInput.addEventListener('input', updateCalculations);
-    document.querySelectorAll('input[name="workType"]').forEach(r => r.addEventListener('change', toggleDynamicFields));
-    
-    const searchInput = document.getElementById('searchInput');
-    const filterDistrict = document.getElementById('filterDistrict');
-    const filterStatus = document.getElementById('filterStatus');
-    if (searchInput) searchInput.addEventListener('input', loadAllRequests);
-    if (filterDistrict) filterDistrict.addEventListener('change', loadAllRequests);
-    if (filterStatus) filterStatus.addEventListener('change', loadAllRequests);
-    
-    document.querySelectorAll('.payment-option').forEach(opt => {
-        opt.addEventListener('click', function() {
-            document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
-            this.classList.add('selected');
-        });
-    });
+    document.getElementById('length')?.addEventListener('input', updateCalculations);
+    document.getElementById('width')?.addEventListener('input', updateCalculations);
+    document.getElementById('depth')?.addEventListener('input', updateCalculations);
+    document.getElementById('floors')?.addEventListener('input', updateCalculations);
+    document.querySelectorAll('input[name="workType"]').forEach(r=>r.addEventListener('change', toggleDynamicFields));
+    document.getElementById('searchInput')?.addEventListener('input', loadAllRequests);
+    document.getElementById('filterDistrict')?.addEventListener('change', loadAllRequests);
+    document.getElementById('filterStatus')?.addEventListener('change', loadAllRequests);
+    document.querySelectorAll('.payment-option').forEach(opt=>opt.addEventListener('click',function(){ document.querySelectorAll('.payment-option').forEach(o=>o.classList.remove('selected')); this.classList.add('selected'); }));
     
     function loadDistrictsFilter() {
-        const districts = ['بولاق الدكرور', 'العجوزة', 'الدقي', 'الهرم', 'الجيزة', 'إمبابة', 'أوسيم', 'كرداسة'];
-        const filterSelect = document.getElementById('filterDistrict');
-        if (filterSelect) {
-            filterSelect.innerHTML = '<option value="">جميع الأحياء</option>' + districts.map(d => `<option>${d}</option>`).join('');
-        }
+        let districts = ['بولاق الدكرور','العجوزة','الدقي','الهرم','الجيزة','إمبابة','أوسيم','كرداسة'];
+        let filter = document.getElementById('filterDistrict');
+        if(filter) filter.innerHTML = '<option value="">جميع الأحياء</option>'+districts.map(d=>`<option>${d}</option>`).join('');
+        let filterStatus = document.getElementById('filterStatus');
+        if(filterStatus) filterStatus.innerHTML = '<option value="">جميع الحالات</option><option value="pending">قيد الانتظار</option><option value="sent_to_authority">مرسل للهيئة</option><option value="under_review">قيد المراجعة</option><option value="approved">معتمد</option>';
     }
     
-    // التهيئة
+    initBackground3D();
     loadDistrictsFilter();
     updateCalculations();
-    console.log('✅ المنظومة جاهزة - مع رسمة السيارة ثلاثية الأبعاد');
+    console.log('✅ المنظومة جاهزة - موظف الهيئة يدخل جميع تفاصيل المركبة مع نموذج 3D');
 </script>
 </body>
 </html>
