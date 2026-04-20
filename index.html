@@ -90,8 +90,6 @@
         .btn-excel { background: linear-gradient(135deg, #217346, #1b5e3a); }
         .btn-pdf { background: linear-gradient(135deg, #d32f2f, #b71c1c); }
         .btn-success { background: linear-gradient(135deg, #28a745, #1e7e34); }
-        .btn-warning { background: linear-gradient(135deg, #ffc107, #e0a800); color: #1a472a; }
-        .btn-danger { background: linear-gradient(135deg, #dc3545, #c82333); }
         
         .button-group { display: flex; gap: 12px; margin-top: 15px; }
         .button-group button { margin-top: 0; flex: 1; }
@@ -204,7 +202,7 @@
             </div>
         </div>
 
-        <!-- New Request -->
+        <!-- New Request (موظف حي + مدير حي) -->
         <div id="newRequestPage" class="hidden">
             <div class="card">
                 <h3>➕ تسجيل طلب رخصة بناء جديد</h3>
@@ -243,7 +241,7 @@
             </div>
         </div>
 
-        <!-- Vehicle Assignment (موظف الهيئة) -->
+        <!-- Vehicle Assignment (موظف هيئة فقط) -->
         <div id="vehiclePage" class="hidden">
             <div class="card">
                 <h3>🚚 إضافة مركبة إلى الطلب</h3>
@@ -264,7 +262,7 @@
             </div>
         </div>
 
-        <!-- Approvals (مدير الهيئة) -->
+        <!-- Approvals (مدير هيئة فقط) -->
         <div id="approvalsPage" class="hidden">
             <div class="card">
                 <h3>✅ طلبات انتظار الموافقة</h3>
@@ -277,7 +275,7 @@
             </div>
         </div>
 
-        <!-- Requests List -->
+        <!-- Requests List (الكل) -->
         <div id="requestsListPage" class="hidden">
             <div class="card">
                 <h3>📋 جميع طلبات تراخيص البناء</h3>
@@ -300,7 +298,16 @@
             </div>
         </div>
 
-        <!-- Refund (استرداد التأمين) -->
+        <!-- Driver Card (الكل) -->
+        <div id="driverCardPage" class="hidden">
+            <div class="card">
+                <h3>🎫 كارت السائق - مقلب شبرا منت</h3>
+                <div class="form-group"><label>رقم المعاملة</label><input type="text" id="cardTransactionNo" placeholder="أدخل رقم المعاملة"></div>
+                <div id="driverCardResult"></div>
+            </div>
+        </div>
+
+        <!-- Refund (مدير هيئة فقط) -->
         <div id="refundPage" class="hidden">
             <div class="card">
                 <h3>🔄 استرداد المبلغ التأميني</h3>
@@ -314,16 +321,7 @@
             </div>
         </div>
 
-        <!-- Driver Card (كارت السائق) -->
-        <div id="driverCardPage" class="hidden">
-            <div class="card">
-                <h3>🎫 كارت السائق - مقلب شبرا منت</h3>
-                <div class="form-group"><label>رقم المعاملة</label><input type="text" id="cardTransactionNo" placeholder="أدخل رقم المعاملة"></div>
-                <div id="driverCardResult"></div>
-            </div>
-        </div>
-
-        <!-- Users Management -->
+        <!-- Users Management (مدير هيئة فقط) -->
         <div id="usersPage" class="hidden">
             <div class="card">
                 <h3>👥 إدارة المستخدمين والصلاحيات</h3>
@@ -358,12 +356,52 @@
     let map = null;
     let marker = null;
     
-    // بيانات المستخدمين
+    // ========== بيانات المستخدمين (مع الصلاحيات الكاملة) ==========
     let users = [
-        { id: 1, username: 'موظف_بولاق', password: '123', role: 'موظف حي', district: 'بولاق الدكرور', permissions: { add: true, edit: false, delete: false, viewAll: false, manageUsers: false, assignVehicle: false, approve: false, refund: false } },
-        { id: 2, username: 'مدير_بولاق', password: '123', role: 'مدير حي', district: 'بولاق الدكرور', permissions: { add: true, edit: true, delete: false, viewAll: false, manageUsers: false, assignVehicle: false, approve: false, refund: false } },
-        { id: 3, username: 'موظف_هيئة', password: '123', role: 'موظف هيئة', district: null, permissions: { add: false, edit: false, delete: false, viewAll: true, manageUsers: false, assignVehicle: true, approve: false, refund: false } },
-        { id: 4, username: 'مدير_هيئة', password: '123', role: 'مدير هيئة', district: null, permissions: { add: false, edit: true, delete: true, viewAll: true, manageUsers: true, assignVehicle: true, approve: true, refund: true } }
+        { 
+            id: 1, 
+            username: 'موظف_بولاق', 
+            password: '123', 
+            role: 'موظف حي', 
+            district: 'بولاق الدكرور', 
+            permissions: { 
+                add: true, edit: false, delete: false, viewAll: false, 
+                manageUsers: false, assignVehicle: false, approve: false, refund: false 
+            } 
+        },
+        { 
+            id: 2, 
+            username: 'مدير_بولاق', 
+            password: '123', 
+            role: 'مدير حي', 
+            district: 'بولاق الدكرور', 
+            permissions: { 
+                add: true, edit: true, delete: false, viewAll: false, 
+                manageUsers: false, assignVehicle: false, approve: false, refund: false 
+            } 
+        },
+        { 
+            id: 3, 
+            username: 'موظف_هيئة', 
+            password: '123', 
+            role: 'موظف هيئة', 
+            district: null, 
+            permissions: { 
+                add: false, edit: false, delete: false, viewAll: true, 
+                manageUsers: false, assignVehicle: true, approve: false, refund: false 
+            } 
+        },
+        { 
+            id: 4, 
+            username: 'مدير_هيئة', 
+            password: '123', 
+            role: 'مدير هيئة', 
+            district: null, 
+            permissions: { 
+                add: false, edit: true, delete: true, viewAll: true, 
+                manageUsers: true, assignVehicle: true, approve: true, refund: true 
+            } 
+        }
     ];
     
     // بيانات الطلبات
@@ -459,7 +497,7 @@
         } else alert('المتصفح لا يدعم تحديد الموقع');
     }
     
-    // دوال الطلبات
+    // ========== دوال الطلبات ==========
     async function saveNewRequest() {
         if (!currentUser?.permissions?.add) { showToast('❌ ليس لديك صلاحية لإضافة طلبات جديدة', 'error'); return; }
         
@@ -540,11 +578,15 @@
         const tbody = document.querySelector('#recentTable tbody');
         if (tbody) {
             tbody.innerHTML = recent.map(r => `<tr>
-                <td>${r.transactionNo || ''}${''.fontsize(0)}</td><td>${r.licenseNo || ''}</td><td>${r.citizenName || ''}</td>
-                <td>${r.district || ''}</td><td>${r.workType || ''}</td><td>${(r.volume || 0).toFixed(2)}</td>
+                <td>${r.transactionNo || ''}${''.fontsize(0)}</td>
+                <td>${r.licenseNo || ''}</td>
+                <td>${r.citizenName || ''}</td>
+                <td>${r.district || ''}</td>
+                <td>${r.workType || ''}</td>
+                <td>${(r.volume || 0).toFixed(2)}</td>
                 <td>${getStatusBadge(r.status, r.approvalStatus)}</td>
                 <td>${getApprovalBadge(r.approvalStatus)}</td>
-            <tr>`).join('');
+            </tr>`).join('');
         }
     }
     
@@ -584,15 +626,19 @@
                 tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">📭 لا توجد طلبات حالياً</td></tr>';
             } else {
                 tbody.innerHTML = finalFiltered.map(r => `<tr>
-                    <td>${r.transactionNo || ''}</td><td>${r.licenseNo || ''}</td><td>${r.citizenName || ''}</td>
-                    <td>${r.district || ''}</td><td>${r.engineer || ''}</td><td>${(r.volume || 0).toFixed(2)}</td>
+                    <td>${r.transactionNo || ''}</td>
+                    <td>${r.licenseNo || ''}</td>
+                    <td>${r.citizenName || ''}</td>
+                    <td>${r.district || ''}</td>
+                    <td>${r.engineer || ''}</td>
+                    <td>${(r.volume || 0).toFixed(2)}</td>
                     <td>${Math.round(r.total || 0)} ج</td>
                     <td>${r.vehicleAssigned ? r.vehicleAssigned.vehicleType + ' - ' + r.vehicleAssigned.vehicleLicenseNumber : '❌ لم يتم تعيين'}</td>
                     <td>${r.vehicleAssigned ? r.vehicleAssigned.driverName : '❌'}</td>
                     <td>${getApprovalBadge(r.approvalStatus)}</td>
                     <td>${r.vehicleAssigned ? `<button onclick="showDriverCard('${r.transactionNo}')" style="background:#c49a2b;color:white;border:none;border-radius:20px;padding:5px 10px;cursor:pointer;"><i class="fas fa-id-card"></i> عرض الكارت</button>` : '❌'}</td>
                     <td>${currentUser?.permissions?.delete ? `<button onclick="deleteRequestById(${r.id})" style="background:#d32f2f;color:white;border:none;border-radius:20px;padding:5px 10px;cursor:pointer;"><i class="fas fa-trash"></i></button>` : ''}</td>
-                </td>`).join('');
+                </tr>`).join('');
             }
         }
     }
@@ -618,13 +664,14 @@
                     <div class="card-detail"><span>📋 رقم المعاملة:</span><span><strong>${request.transactionNo}</strong></span></div>
                     <div class="card-detail"><span>📄 رقم الترخيص:</span><span>${request.licenseNo}</span></div>
                     <div class="card-detail"><span>👤 اسم المواطن:</span><span>${request.citizenName}</span></div>
+                    <div class="card-detail"><span>📍 الحي:</span><span>${request.district}</span></div>
                     <div class="card-detail"><span>🚚 المركبة:</span><span>${request.vehicleAssigned.vehicleType} - ${request.vehicleAssigned.vehicleLicenseNumber}</span></div>
                     <div class="card-detail"><span>👨‍✈️ السائق:</span><span>${request.vehicleAssigned.driverName}</span></div>
                     <div class="card-detail"><span>📞 هاتف السائق:</span><span>${request.vehicleAssigned.driverPhone}</span></div>
-                    <div class="card-detail"><span>✅ حالة الطلب:</span><span>${request.approvalStatus === 'approved' ? 'معتمد - يمكن استرداد التأمين' : request.approvalStatus === 'pending' ? 'قيد المراجعة - لا يمكن استرداد التأمين' : request.approvalStatus}</span></div>
+                    <div class="card-detail"><span>✅ حالة الطلب:</span><span>${request.approvalStatus === 'approved' ? 'معتمد - يمكن استرداد التأمين' : request.approvalStatus === 'under_review' ? 'قيد المراجعة' : request.approvalStatus}</span></div>
                     <div class="card-detail"><span>💰 المبلغ التأميني:</span><span>${Math.round(request.item2 || (request.volume * 40))} ج</span></div>
                     <hr>
-                    <div style="text-align:center; font-size:0.8rem; color:#666;">هذا الكارت يثبت أن الطلب معتمد من هيئة النظافة</div>
+                    <div style="text-align:center;"><button onclick="window.print()" style="background:#1a472a;color:white;border:none;border-radius:20px;padding:8px 20px;cursor:pointer;"><i class="fas fa-print"></i> طباعة الكارت</button></div>
                 </div>
             `;
             document.querySelector('.nav-btn[data-page="driverCard"]').click();
@@ -633,7 +680,7 @@
         }
     };
     
-    // دوال المركبات والموافقات
+    // ========== دوال المركبات والموافقات ==========
     document.getElementById('vehicleTransactionNo')?.addEventListener('input', async function() {
         const transactionNo = document.getElementById('vehicleTransactionNo').value;
         const licenseNo = document.getElementById('vehicleLicenseNo').value;
@@ -661,6 +708,11 @@
     });
     
     document.getElementById('assignVehicleBtn')?.addEventListener('click', async () => {
+        if (!currentUser?.permissions?.assignVehicle) {
+            showToast('❌ ليس لديك صلاحية لتعيين مركبة', 'error');
+            return;
+        }
+        
         const transactionNo = document.getElementById('vehicleTransactionNo').value;
         const licenseNo = document.getElementById('vehicleLicenseNo').value;
         const vehicleLicenseNumber = document.getElementById('vehicleLicenseNumber').value;
@@ -695,6 +747,7 @@
     });
     
     async function loadPendingApprovals() {
+        if (!currentUser?.permissions?.approve) return;
         const pending = requests.filter(r => r.approvalStatus === 'under_review');
         const tbody = document.querySelector('#pendingApprovalsTable tbody');
         if (tbody) {
@@ -702,7 +755,9 @@
                 tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">📭 لا توجد طلبات بانتظار الموافقة</td></tr>';
             } else {
                 tbody.innerHTML = pending.map(r => `<tr>
-                    <td>${r.transactionNo}</td><td>${r.licenseNo}</td><td>${r.citizenName}</td>
+                    <td>${r.transactionNo}</td>
+                    <td>${r.licenseNo}</td>
+                    <td>${r.citizenName}</td>
                     <td>${r.district}</td>
                     <td>${r.vehicleAssigned ? r.vehicleAssigned.vehicleType + ' - ' + r.vehicleAssigned.vehicleLicenseNumber : '-'}</td>
                     <td>${r.vehicleAssigned ? r.vehicleAssigned.driverName : '-'}</td>
@@ -715,6 +770,7 @@
     }
     
     window.approveRequest = (transactionNo) => {
+        if (!currentUser?.permissions?.approve) { showToast('❌ ليس لديك صلاحية للموافقة', 'error'); return; }
         const request = requests.find(r => r.transactionNo === transactionNo);
         if (request) {
             request.approvalStatus = 'approved';
@@ -727,6 +783,7 @@
     };
     
     window.rejectRequest = (transactionNo) => {
+        if (!currentUser?.permissions?.approve) { showToast('❌ ليس لديك صلاحية للرفض', 'error'); return; }
         const request = requests.find(r => r.transactionNo === transactionNo);
         if (request) {
             request.approvalStatus = 'rejected';
@@ -750,7 +807,7 @@
         return { success: false, message: 'لم يتم العثور على الطلب' };
     }
     
-    // دوال المستخدمين
+    // ========== دوال المستخدمين ==========
     function getPermissionsByRole(role, district = null) {
         switch(role) {
             case 'موظف حي': return { add: true, edit: false, delete: false, viewAll: false, manageUsers: false, assignVehicle: false, approve: false, refund: false };
@@ -764,18 +821,25 @@
     function loadUsersTable() {
         const tbody = document.querySelector('#usersTable tbody');
         if (tbody) {
-            tbody.innerHTML = users.map(u => `<tr><td>${u.username}</td><td>${u.role}</td><td>${u.district || '-'}</td><td>${getPermissionsText(u.permissions)}</td><td>${currentUser?.permissions?.manageUsers ? `<button onclick="deleteUserById(${u.id})" style="background:#d32f2f;color:white;border:none;border-radius:20px;padding:5px 10px;cursor:pointer;"><i class="fas fa-trash"></i></button>` : ''}</td></tr>`).join('');
+            tbody.innerHTML = users.map(u => `<tr>
+                <td>${u.username}</td>
+                <td>${u.role}</td>
+                <td>${u.district || '-'}</td>
+                <td>${getPermissionsText(u.permissions)}</td>
+                <td>${currentUser?.permissions?.manageUsers ? `<button onclick="deleteUserById(${u.id})" style="background:#d32f2f;color:white;border:none;border-radius:20px;padding:5px 10px;cursor:pointer;"><i class="fas fa-trash"></i></button>` : ''}</td>
+            </tr>`).join('');
         }
     }
     
     function getPermissionsText(permissions) {
         if (!permissions) return '<span class="permission-badge permission-limited">عرض فقط</span>';
         let text = [];
-        if (permissions.add) text.push('<span class="permission-badge permission-full">إضافة</span>');
-        if (permissions.assignVehicle) text.push('<span class="permission-badge permission-full">تعيين مركبة</span>');
-        if (permissions.approve) text.push('<span class="permission-badge permission-full">موافقة</span>');
-        if (permissions.refund) text.push('<span class="permission-badge permission-full">استرداد</span>');
-        if (text.length === 0) text.push('<span class="permission-badge permission-limited">عرض فقط</span>');
+        if (permissions.add) text.push('<span class="permission-badge permission-full">➕ إضافة</span>');
+        if (permissions.assignVehicle) text.push('<span class="permission-badge permission-full">🚚 تعيين مركبة</span>');
+        if (permissions.approve) text.push('<span class="permission-badge permission-full">✅ موافقة</span>');
+        if (permissions.refund) text.push('<span class="permission-badge permission-full">💰 استرداد</span>');
+        if (permissions.manageUsers) text.push('<span class="permission-badge permission-full">👥 مستخدمين</span>');
+        if (text.length === 0) text.push('<span class="permission-badge permission-limited">👁️ عرض فقط</span>');
         return text.join(' ');
     }
     
@@ -787,7 +851,7 @@
         }
     };
     
-    // بناء القوائم حسب الصلاحيات
+    // ========== بناء القوائم حسب الصلاحيات ==========
     function setupNavLinks() {
         const navContainer = document.getElementById('navLinks');
         if (!navContainer) return;
@@ -816,24 +880,18 @@
     
     function showPage(pageName) {
         const pages = ['dashboardPage', 'newRequestPage', 'vehiclePage', 'approvalsPage', 'requestsListPage', 'driverCardPage', 'refundPage', 'usersPage'];
-        pages.forEach(p => { const el = document.getElementById(p); if (el) el.classList.add('hidden'); });        const activePage = document.getElementById(pageName + 'Page');
+        pages.forEach(p => { const el = document.getElementById(p); if (el) el.classList.add('hidden'); });
+        const activePage = document.getElementById(pageName + 'Page');
         if (activePage) activePage.classList.remove('hidden');
         
-        if (pageName === 'newRequest') {
-            setTransactionNo();
-            if (typeof initMap === 'function') initMap();
-            updateCalculations();
-        }
+        if (pageName === 'newRequest') { setTransactionNo(); if (typeof initMap === 'function') initMap(); updateCalculations(); }
         if (pageName === 'users') loadUsersTable();
         if (pageName === 'requestsList') loadAllRequests();
         if (pageName === 'approvals') loadPendingApprovals();
-        if (pageName === 'dashboard') {
-            loadDashboardStats();
-            loadDashboard();
-        }
+        if (pageName === 'dashboard') { loadDashboardStats(); loadDashboard(); }
     }
     
-    // استرداد التأمين
+    // ========== استرداد التأمين ==========
     document.getElementById('confirmRefundBtn')?.addEventListener('click', async () => {
         if (!currentUser?.permissions?.refund) {
             showToast('❌ ليس لديك صلاحية لاسترداد التأمين', 'error');
@@ -886,7 +944,7 @@
         }
     }
     
-    // كارت السائق
+    // ========== كارت السائق ==========
     document.getElementById('cardTransactionNo')?.addEventListener('input', function() {
         const transactionNo = this.value;
         if (transactionNo) {
@@ -899,35 +957,28 @@
                         <div class="card-detail"><span>📋 رقم المعاملة:</span><span><strong>${request.transactionNo}</strong></span></div>
                         <div class="card-detail"><span>📄 رقم الترخيص:</span><span>${request.licenseNo}</span></div>
                         <div class="card-detail"><span>👤 اسم المواطن:</span><span>${request.citizenName}</span></div>
-                        <div class="card-detail"><span>📞 هاتف المواطن:</span><span>${request.phone}</span></div>
                         <div class="card-detail"><span>📍 الحي:</span><span>${request.district}</span></div>
                         <div class="card-detail"><span>🏠 عنوان العقار:</span><span>${request.address}</span></div>
                         <div class="card-detail"><span>🚚 المركبة:</span><span>${request.vehicleAssigned.vehicleType} - ${request.vehicleAssigned.vehicleLicenseNumber}</span></div>
                         <div class="card-detail"><span>👨‍✈️ السائق:</span><span>${request.vehicleAssigned.driverName}</span></div>
                         <div class="card-detail"><span>📞 هاتف السائق:</span><span>${request.vehicleAssigned.driverPhone}</span></div>
-                        <div class="card-detail"><span>✅ حالة الطلب:</span><span>${request.approvalStatus === 'approved' ? '✅ معتمد - يمكن استرداد التأمين' : request.approvalStatus === 'under_review' ? '🔍 قيد المراجعة - لا يمكن استرداد التأمين' : request.approvalStatus === 'rejected' ? '❌ مرفوض' : '⏳ قيد الانتظار'}</span></div>
+                        <div class="card-detail"><span>✅ حالة الطلب:</span><span>${request.approvalStatus === 'approved' ? 'معتمد - يمكن استرداد التأمين' : request.approvalStatus === 'under_review' ? 'قيد المراجعة - لا يمكن استرداد التأمين' : request.approvalStatus}</span></div>
                         <div class="card-detail"><span>💰 المبلغ التأميني:</span><span>${Math.round(request.item2 || (request.volume * 40))} ج</span></div>
                         <hr>
-                        <div style="text-align:center; margin-top:15px;">
-                            <div style="font-size:0.7rem; color:#666;">هذا الكارت يثبت أن الطلب مسجل في منظومة المخلفات الصلبة</div>
-                            <div style="font-size:0.7rem; color:#c49a2b;">محافظة الجيزة - هيئة النظافة والتجميل</div>
-                            <button onclick="window.print()" style="background:#1a472a;color:white;border:none;border-radius:20px;padding:8px 20px;margin-top:10px;cursor:pointer;"><i class="fas fa-print"></i> طباعة الكارت</button>
-                        </div>
+                        <div style="text-align:center;"><button onclick="window.print()" style="background:#1a472a;color:white;border:none;border-radius:20px;padding:8px 20px;cursor:pointer;"><i class="fas fa-print"></i> طباعة الكارت</button></div>
                     </div>
                 `;
             } else if (request && !request.vehicleAssigned) {
-                resultDiv.innerHTML = `<div style="background:#ffe0e0;padding:15px;border-radius:16px;"><i class="fas fa-exclamation-triangle"></i> ❌ لم يتم تعيين مركبة لهذا الطلب بعد</div>`;
+                resultDiv.innerHTML = `<div style="background:#ffe0e0;padding:15px;border-radius:16px;">❌ لم يتم تعيين مركبة لهذا الطلب بعد</div>`;
             } else {
-                resultDiv.innerHTML = `<div style="background:#ffe0e0;padding:15px;border-radius:16px;"><i class="fas fa-exclamation-triangle"></i> ❌ لم يتم العثور على الطلب</div>`;
+                resultDiv.innerHTML = `<div style="background:#ffe0e0;padding:15px;border-radius:16px;">❌ لم يتم العثور على الطلب</div>`;
             }
         }
     });
     
-    // تسجيل الدخول
+    // ========== تسجيل الدخول ==========
     document.getElementById('loginBtn')?.addEventListener('click', async function(e) {
         e.preventDefault();
-        console.log('🔵 تم الضغط على زر تسجيل الدخول');
-        
         const username = document.getElementById('loginUsername').value;
         const password = document.getElementById('loginPassword').value;
         const role = document.getElementById('loginRole').value;
@@ -944,7 +995,6 @@
         
         if (user) {
             currentUser = { ...user, permissions: user.permissions || getPermissionsByRole(user.role, user.district) };
-            console.log('✅ تم تسجيل الدخول بنجاح:', currentUser);
             
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
@@ -987,7 +1037,7 @@
         if (errorDiv) errorDiv.classList.add('hidden');
     });
     
-    // تصدير التقارير
+    // ========== تصدير التقارير ==========
     document.getElementById('exportExcelBtn')?.addEventListener('click', async () => {
         let filtered = [...requests];
         if (currentUser?.role === 'موظف حي' || currentUser?.role === 'مدير حي') filtered = filtered.filter(r => r.district === currentUser.district);
@@ -1028,7 +1078,7 @@
         showToast('📄 تم تصدير التقرير بنجاح');
     });
     
-    // إضافة مستخدم جديد
+    // ========== إضافة مستخدم جديد ==========
     document.getElementById('addUserBtn')?.addEventListener('click', () => {
         if (!currentUser?.permissions?.manageUsers) {
             showToast('❌ ليس لديك صلاحية لإضافة مستخدمين', 'error');
@@ -1059,7 +1109,7 @@
         loadUsersTable();
     });
     
-    // ربط الأحداث
+    // ========== ربط الأحداث ==========
     document.getElementById('saveRequestBtn')?.addEventListener('click', saveNewRequest);
     document.getElementById('getLocationBtn')?.addEventListener('click', getCurrentLocation);
     document.getElementById('refreshTableBtn')?.addEventListener('click', () => { loadAllRequests(); showToast('🔄 تم تحديث الجدول'); });
@@ -1103,7 +1153,7 @@
     // التهيئة
     loadDistrictsFilter();
     updateCalculations();
-    console.log('✅ المنظومة جاهزة - نظام الصلاحيات المتقدم مفعل');
+    console.log('✅ المنظومة جاهزة - جميع الصلاحيات مفعلة');
 </script>
 </body>
 </html>
