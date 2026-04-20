@@ -115,6 +115,47 @@
         .driver-card h4 { color: #1a472a; margin-bottom: 15px; }
         .driver-card .card-detail { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #ddd; }
         
+        /* 3D Vehicle Container */
+        .vehicle-3d-container {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-radius: 24px;
+            padding: 20px;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+            min-height: 350px;
+        }
+        .vehicle-3d-container h4 {
+            color: #c49a2b;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #vehicle3DCanvas {
+            width: 100%;
+            height: 300px;
+            border-radius: 16px;
+            background: radial-gradient(circle at 30% 20%, #1a1a2e, #0a0a15);
+        }
+        .vehicle-info-panel {
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 15px;
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: space-between;
+        }
+        .vehicle-info-panel span {
+            font-size: 0.8rem;
+            color: #ccc;
+        }
+        .vehicle-info-panel strong {
+            color: #c49a2b;
+        }
+        
         @media (max-width: 768px) { .navbar { flex-direction: column; gap: 15px; } .form-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -202,7 +243,7 @@
             </div>
         </div>
 
-        <!-- New Request (موظف حي + مدير حي) -->
+        <!-- New Request -->
         <div id="newRequestPage" class="hidden">
             <div class="card">
                 <h3>➕ تسجيل طلب رخصة بناء جديد</h3>
@@ -241,7 +282,7 @@
             </div>
         </div>
 
-        <!-- Vehicle Assignment (موظف هيئة فقط) -->
+        <!-- Vehicle Assignment (موظف هيئة + مدير هيئة) -->
         <div id="vehiclePage" class="hidden">
             <div class="card">
                 <h3>🚚 إضافة مركبة إلى الطلب</h3>
@@ -250,9 +291,22 @@
                     <div class="form-group"><label>رقم الترخيص</label><input type="text" id="vehicleLicenseNo" placeholder="رقم الترخيص"></div>
                 </div>
                 <div id="vehicleRequestInfo" style="margin: 15px 0; padding: 15px; background: #f5f5f0; border-radius: 16px;"></div>
+                
+                <!-- 3D Vehicle Model Container -->
+                <div class="vehicle-3d-container" id="vehicle3dContainer" style="display: none;">
+                    <h4><i class="fas fa-cube"></i> نموذج المركبة ثلاثي الأبعاد</h4>
+                    <canvas id="vehicle3DCanvas"></canvas>
+                    <div class="vehicle-info-panel" id="vehicle3dInfo"></div>
+                </div>
+                
                 <div class="form-grid" id="vehicleDetailsForm" style="display: none;">
-                    <div class="form-group"><label><i class="fas fa-truck"></i> رقم رخصة المركبة</label><input type="text" id="vehicleLicenseNumber" placeholder="رقم رخصة المركبة"></div>
-                    <div class="form-group"><label><i class="fas fa-truck-moving"></i> نوع المركبة</label><select id="vehicleType"><option>قلاب</option><option>ضاغط نفايات</option><option>ونش</option><option>لودر</option><option>أخرى</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-truck"></i> رقم رخصة المركبة *</label><input type="text" id="vehicleLicenseNumber" placeholder="رقم رخصة المركبة"></div>
+                    <div class="form-group"><label><i class="fas fa-palette"></i> لون المركبة *</label><select id="vehicleColor"><option>أحمر</option><option>أزرق</option><option>أخضر</option><option>أصفر</option><option>أبيض</option><option>أسود</option><option>برتقالي</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-id-card"></i> اسم صاحب الرخصة *</label><input type="text" id="vehicleOwnerName" placeholder="اسم صاحب الرخصة"></div>
+                    <div class="form-group"><label><i class="fas fa-calendar"></i> الموديل</label><input type="text" id="vehicleModel" placeholder="مثال: 2022"></div>
+                    <div class="form-group"><label><i class="fas fa-industry"></i> سنة الصنع</label><input type="number" id="vehicleYear" placeholder="سنة الصنع"></div>
+                    <div class="form-group"><label><i class="fas fa-weight-hanging"></i> الحمولة (طن)</label><input type="number" id="vehicleCapacity" step="0.5" placeholder="الحمولة بالطن"></div>
+                    <div class="form-group"><label><i class="fas fa-tachometer-alt"></i> نوع المركبة</label><select id="vehicleType"><option>قلاب</option><option>ضاغط نفايات</option><option>ونش</option><option>لودر</option><option>صندوق مغلق</option></select></div>
                     <div class="form-group"><label><i class="fas fa-calendar-alt"></i> تاريخ انتهاء الرخصة</label><input type="date" id="vehicleExpiryDate"></div>
                     <div class="form-group"><label><i class="fas fa-user"></i> اسم السائق</label><input type="text" id="driverName" placeholder="اسم السائق المسئول"></div>
                     <div class="form-group"><label><i class="fas fa-id-card"></i> رقم رخصة السائق</label><input type="text" id="driverLicenseNumber" placeholder="رقم رخصة السائق"></div>
@@ -262,7 +316,7 @@
             </div>
         </div>
 
-        <!-- Approvals (مدير هيئة فقط) -->
+        <!-- Approvals -->
         <div id="approvalsPage" class="hidden">
             <div class="card">
                 <h3>✅ طلبات انتظار الموافقة</h3>
@@ -275,7 +329,7 @@
             </div>
         </div>
 
-        <!-- Requests List (الكل) -->
+        <!-- Requests List -->
         <div id="requestsListPage" class="hidden">
             <div class="card">
                 <h3>📋 جميع طلبات تراخيص البناء</h3>
@@ -298,7 +352,7 @@
             </div>
         </div>
 
-        <!-- Driver Card (الكل) -->
+        <!-- Driver Card -->
         <div id="driverCardPage" class="hidden">
             <div class="card">
                 <h3>🎫 كارت السائق - مقلب شبرا منت</h3>
@@ -307,7 +361,7 @@
             </div>
         </div>
 
-        <!-- Refund (مدير هيئة فقط) -->
+        <!-- Refund -->
         <div id="refundPage" class="hidden">
             <div class="card">
                 <h3>🔄 استرداد المبلغ التأميني</h3>
@@ -321,7 +375,7 @@
             </div>
         </div>
 
-        <!-- Users Management (مدير هيئة فقط) -->
+        <!-- Users Management -->
         <div id="usersPage" class="hidden">
             <div class="card">
                 <h3>👥 إدارة المستخدمين والصلاحيات</h3>
@@ -346,65 +400,39 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.128.0/build/three.module.js"
+        }
+    }
+</script>
 
-<script>
+<script type="module">
     // =====================================================
     // منظومة المخلفات الصلبة - محافظة الجيزة
+    // مع رسمة سيارة ثلاثية الأبعاد
     // =====================================================
+    
+    import * as THREE from 'three';
+    import { OrbitControls } from 'https://unpkg.com/three@0.128.0/examples/jsm/controls/OrbitControls.js';
     
     let currentUser = null;
     let map = null;
     let marker = null;
+    let scene3D = null;
+    let camera3D = null;
+    let renderer3D = null;
+    let vehicleModel = null;
     
-    // ========== بيانات المستخدمين (مع الصلاحيات الكاملة) ==========
+    // بيانات المستخدمين
     let users = [
-        { 
-            id: 1, 
-            username: 'موظف_بولاق', 
-            password: '123', 
-            role: 'موظف حي', 
-            district: 'بولاق الدكرور', 
-            permissions: { 
-                add: true, edit: false, delete: false, viewAll: false, 
-                manageUsers: false, assignVehicle: false, approve: false, refund: false 
-            } 
-        },
-        { 
-            id: 2, 
-            username: 'مدير_بولاق', 
-            password: '123', 
-            role: 'مدير حي', 
-            district: 'بولاق الدكرور', 
-            permissions: { 
-                add: true, edit: true, delete: false, viewAll: false, 
-                manageUsers: false, assignVehicle: false, approve: false, refund: false 
-            } 
-        },
-        { 
-            id: 3, 
-            username: 'موظف_هيئة', 
-            password: '123', 
-            role: 'موظف هيئة', 
-            district: null, 
-            permissions: { 
-                add: false, edit: false, delete: false, viewAll: true, 
-                manageUsers: false, assignVehicle: true, approve: false, refund: false 
-            } 
-        },
-        { 
-            id: 4, 
-            username: 'مدير_هيئة', 
-            password: '123', 
-            role: 'مدير هيئة', 
-            district: null, 
-            permissions: { 
-                add: false, edit: true, delete: true, viewAll: true, 
-                manageUsers: true, assignVehicle: true, approve: true, refund: true 
-            } 
-        }
+        { id: 1, username: 'موظف_بولاق', password: '123', role: 'موظف حي', district: 'بولاق الدكرور', permissions: { add: true, edit: false, delete: false, viewAll: false, manageUsers: false, assignVehicle: false, approve: false, refund: false } },
+        { id: 2, username: 'مدير_بولاق', password: '123', role: 'مدير حي', district: 'بولاق الدكرور', permissions: { add: true, edit: true, delete: false, viewAll: false, manageUsers: false, assignVehicle: false, approve: false, refund: false } },
+        { id: 3, username: 'موظف_هيئة', password: '123', role: 'موظف هيئة', district: null, permissions: { add: false, edit: false, delete: false, viewAll: true, manageUsers: false, assignVehicle: true, approve: false, refund: false } },
+        { id: 4, username: 'مدير_هيئة', password: '123', role: 'مدير هيئة', district: null, permissions: { add: false, edit: true, delete: true, viewAll: true, manageUsers: true, assignVehicle: true, approve: true, refund: true } }
     ];
     
-    // بيانات الطلبات
     let requests = JSON.parse(localStorage.getItem('giza_requests')) || [];
     
     function saveRequests() { localStorage.setItem('giza_requests', JSON.stringify(requests)); }
@@ -497,6 +525,196 @@
         } else alert('المتصفح لا يدعم تحديد الموقع');
     }
     
+    // ========== 3D Vehicle Functions ==========
+    function init3DVehicle(color = '#ff0000') {
+        const canvas = document.getElementById('vehicle3DCanvas');
+        if (!canvas) return;
+        
+        const container = canvas.parentElement;
+        const width = container.clientWidth;
+        const height = 300;
+        
+        scene3D = new THREE.Scene();
+        scene3D.background = new THREE.Color(0x0a0a2a);
+        scene3D.fog = new THREE.FogExp2(0x0a0a2a, 0.008);
+        
+        camera3D = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+        camera3D.position.set(5, 3, 8);
+        camera3D.lookAt(0, 0, 0);
+        
+        renderer3D = new THREE.WebGLRenderer({ canvas, antialias: true });
+        renderer3D.setSize(width, height);
+        renderer3D.shadowMap.enabled = true;
+        
+        const controls = new OrbitControls(camera3D, renderer3D.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 2;
+        controls.enableZoom = true;
+        controls.enablePan = true;
+        controls.target.set(0, 0.5, 0);
+        
+        // Lights
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene3D.add(ambientLight);
+        
+        const mainLight = new THREE.DirectionalLight(0xffffff, 1);
+        mainLight.position.set(5, 10, 7);
+        mainLight.castShadow = true;
+        mainLight.receiveShadow = true;
+        scene3D.add(mainLight);
+        
+        const fillLight = new THREE.PointLight(0x404060, 0.5);
+        fillLight.position.set(-2, 3, 4);
+        scene3D.add(fillLight);
+        
+        const backLight = new THREE.PointLight(0xffaa66, 0.3);
+        backLight.position.set(0, 2, -5);
+        scene3D.add(backLight);
+        
+        const rimLight = new THREE.PointLight(0xffaa66, 0.4);
+        rimLight.position.set(3, 2, -2);
+        scene3D.add(rimLight);
+        
+        // Ground grid
+        const gridHelper = new THREE.GridHelper(20, 20, 0x88aaff, 0x335588);
+        gridHelper.position.y = -0.5;
+        scene3D.add(gridHelper);
+        
+        // Create vehicle group
+        vehicleModel = new THREE.Group();
+        
+        // Convert color string to THREE.Color
+        let vehicleColor;
+        const colorMap = {
+            'أحمر': 0xff3333, 'أزرق': 0x3366ff, 'أخضر': 0x33cc33, 'أصفر': 0xffcc00,
+            'أبيض': 0xeeeeee, 'أسود': 0x333333, 'برتقالي': 0xff8800
+        };
+        vehicleColor = colorMap[color] || 0xff3333;
+        
+        // Body (main cabin)
+        const bodyGeo = new THREE.BoxGeometry(1.8, 0.8, 3.5);
+        const bodyMat = new THREE.MeshStandardMaterial({ color: vehicleColor, roughness: 0.3, metalness: 0.7 });
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        body.position.set(0, 0.4, 0);
+        body.castShadow = true;
+        body.receiveShadow = true;
+        vehicleModel.add(body);
+        
+        // Roof
+        const roofGeo = new THREE.BoxGeometry(1.4, 0.4, 2.2);
+        const roofMat = new THREE.MeshStandardMaterial({ color: 0xccccdd, roughness: 0.2, metalness: 0.8 });
+        const roof = new THREE.Mesh(roofGeo, roofMat);
+        roof.position.set(0, 0.85, -0.3);
+        roof.castShadow = true;
+        vehicleModel.add(roof);
+        
+        // Windshield
+        const glassMat = new THREE.MeshStandardMaterial({ color: 0x88aaff, roughness: 0.1, metalness: 0.9, emissive: 0x112233 });
+        const windshieldGeo = new THREE.BoxGeometry(1.3, 0.25, 1.2);
+        const windshield = new THREE.Mesh(windshieldGeo, glassMat);
+        windshield.position.set(0, 0.7, -1.1);
+        vehicleModel.add(windshield);
+        
+        // Hood
+        const hoodGeo = new THREE.BoxGeometry(1.6, 0.3, 1);
+        const hoodMat = new THREE.MeshStandardMaterial({ color: vehicleColor, roughness: 0.4 });
+        const hood = new THREE.Mesh(hoodGeo, hoodMat);
+        hood.position.set(0, 0.5, 1.2);
+        vehicleModel.add(hood);
+        
+        // Wheels
+        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.5, metalness: 0.3 });
+        const wheelGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.5, 24);
+        
+        const positions = [[-0.9, 0.1, -1.2], [0.9, 0.1, -1.2], [-0.9, 0.1, 1.1], [0.9, 0.1, 1.1]];
+        positions.forEach(pos => {
+            const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+            wheel.rotation.z = Math.PI / 2;
+            wheel.position.set(pos[0], pos[1], pos[2]);
+            wheel.castShadow = true;
+            vehicleModel.add(wheel);
+            
+            const rimGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.51, 8);
+            const rimMat = new THREE.MeshStandardMaterial({ color: 0xccccaa, metalness: 0.8, roughness: 0.2 });
+            const rim = new THREE.Mesh(rimGeo, rimMat);
+            rim.rotation.z = Math.PI / 2;
+            rim.position.set(pos[0], pos[1], pos[2]);
+            vehicleModel.add(rim);
+        });
+        
+        // Headlights
+        const lightMat = new THREE.MeshStandardMaterial({ color: 0xffaa66, emissive: 0xff4411, emissiveIntensity: 0.5 });
+        const leftLight = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 16), lightMat);
+        leftLight.position.set(-0.6, 0.35, 1.85);
+        vehicleModel.add(leftLight);
+        
+        const rightLight = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 16), lightMat);
+        rightLight.position.set(0.6, 0.35, 1.85);
+        vehicleModel.add(rightLight);
+        
+        // Taillights
+        const tailMat = new THREE.MeshStandardMaterial({ color: 0xff3333, emissive: 0xff0000, emissiveIntensity: 0.3 });
+        const leftTail = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), tailMat);
+        leftTail.position.set(-0.6, 0.35, -1.75);
+        vehicleModel.add(leftTail);
+        
+        const rightTail = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), tailMat);
+        rightTail.position.set(0.6, 0.35, -1.75);
+        vehicleModel.add(rightTail);
+        
+        scene3D.add(vehicleModel);
+        
+        // Stars background
+        const starGeometry = new THREE.BufferGeometry();
+        const starCount = 500;
+        const starPositions = new Float32Array(starCount * 3);
+        for (let i = 0; i < starCount; i++) {
+            starPositions[i*3] = (Math.random() - 0.5) * 200;
+            starPositions[i*3+1] = (Math.random() - 0.5) * 100 + 20;
+            starPositions[i*3+2] = (Math.random() - 0.5) * 100 - 50;
+        }
+        starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+        const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.15 });
+        const stars = new THREE.Points(starGeometry, starMat);
+        scene3D.add(stars);
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer3D.render(scene3D, camera3D);
+        }
+        animate();
+        
+        window.addEventListener('resize', () => {
+            const newWidth = container.clientWidth;
+            camera3D.aspect = newWidth / height;
+            camera3D.updateProjectionMatrix();
+            renderer3D.setSize(newWidth, height);
+        });
+    }
+    
+    function update3DVehicleColor(color) {
+        if (!vehicleModel) return;
+        const colorMap = {
+            'أحمر': 0xff3333, 'أزرق': 0x3366ff, 'أخضر': 0x33cc33, 'أصفر': 0xffcc00,
+            'أبيض': 0xeeeeee, 'أسود': 0x333333, 'برتقالي': 0xff8800
+        };
+        const newColor = colorMap[color] || 0xff3333;
+        vehicleModel.children.forEach(child => {
+            if (child.isMesh && (child.material?.color?.getHex() === 0xff3333 || 
+                child.material?.color?.getHex() === 0x3366ff ||
+                child.material?.color?.getHex() === 0x33cc33 ||
+                child.material?.color?.getHex() === 0xffcc00 ||
+                child.material?.color?.getHex() === 0xeeeeee ||
+                child.material?.color?.getHex() === 0x333333 ||
+                child.material?.color?.getHex() === 0xff8800)) {
+                if (child.material) child.material.color.setHex(newColor);
+            }
+        });
+    }
+    
     // ========== دوال الطلبات ==========
     async function saveNewRequest() {
         if (!currentUser?.permissions?.add) { showToast('❌ ليس لديك صلاحية لإضافة طلبات جديدة', 'error'); return; }
@@ -586,7 +804,7 @@
                 <td>${(r.volume || 0).toFixed(2)}</td>
                 <td>${getStatusBadge(r.status, r.approvalStatus)}</td>
                 <td>${getApprovalBadge(r.approvalStatus)}</td>
-            </tr>`).join('');
+            </table>`).join('');
         }
     }
     
@@ -623,7 +841,7 @@
         const tbody = document.querySelector('#allRequestsTable tbody');
         if (tbody) {
             if (finalFiltered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">📭 لا توجد طلبات حالياً</td></tr>';
+                tbody.innerHTML = '</table><td colspan="12" style="text-align:center;">📭 لا توجد طلبات حالياً</td></tr>';
             } else {
                 tbody.innerHTML = finalFiltered.map(r => `<tr>
                     <td>${r.transactionNo || ''}</td>
@@ -665,7 +883,12 @@
                     <div class="card-detail"><span>📄 رقم الترخيص:</span><span>${request.licenseNo}</span></div>
                     <div class="card-detail"><span>👤 اسم المواطن:</span><span>${request.citizenName}</span></div>
                     <div class="card-detail"><span>📍 الحي:</span><span>${request.district}</span></div>
+                    <div class="card-detail"><span>🏠 عنوان العقار:</span><span>${request.address}</span></div>
                     <div class="card-detail"><span>🚚 المركبة:</span><span>${request.vehicleAssigned.vehicleType} - ${request.vehicleAssigned.vehicleLicenseNumber}</span></div>
+                    <div class="card-detail"><span>🎨 لون المركبة:</span><span>${request.vehicleAssigned.vehicleColor || '-'}</span></div>
+                    <div class="card-detail"><span>👤 مالك المركبة:</span><span>${request.vehicleAssigned.vehicleOwnerName || '-'}</span></div>
+                    <div class="card-detail"><span>📅 الموديل/السنة:</span><span>${request.vehicleAssigned.vehicleModel || '-'} / ${request.vehicleAssigned.vehicleYear || '-'}</span></div>
+                    <div class="card-detail"><span>⚖️ الحمولة:</span><span>${request.vehicleAssigned.vehicleCapacity || '-'} طن</span></div>
                     <div class="card-detail"><span>👨‍✈️ السائق:</span><span>${request.vehicleAssigned.driverName}</span></div>
                     <div class="card-detail"><span>📞 هاتف السائق:</span><span>${request.vehicleAssigned.driverPhone}</span></div>
                     <div class="card-detail"><span>✅ حالة الطلب:</span><span>${request.approvalStatus === 'approved' ? 'معتمد - يمكن استرداد التأمين' : request.approvalStatus === 'under_review' ? 'قيد المراجعة' : request.approvalStatus}</span></div>
@@ -689,20 +912,31 @@
             const infoDiv = document.getElementById('vehicleRequestInfo');
             const formDiv = document.getElementById('vehicleDetailsForm');
             const btn = document.getElementById('assignVehicleBtn');
+            const container3d = document.getElementById('vehicle3dContainer');
             if (request) {
                 if (request.approvalStatus !== 'pending') {
                     infoDiv.innerHTML = `<div style="background:#fff3e0;padding:15px;border-radius:16px;">⚠️ هذا الطلب حالته: ${request.approvalStatus} - لا يمكن تعديله</div>`;
                     formDiv.style.display = 'none';
                     btn.style.display = 'none';
+                    container3d.style.display = 'none';
                 } else {
                     infoDiv.innerHTML = `<div style="background:#e8f5e9;padding:15px;border-radius:16px;">✅ تم العثور: ${request.citizenName}<br>📍 الحي: ${request.district}<br>📦 حجم المخلفات: ${request.volume.toFixed(2)} م³</div>`;
                     formDiv.style.display = 'grid';
                     btn.style.display = 'block';
+                    container3d.style.display = 'block';
+                    init3DVehicle('أحمر');
+                    
+                    // Add color change listener
+                    const colorSelect = document.getElementById('vehicleColor');
+                    if (colorSelect) {
+                        colorSelect.onchange = () => update3DVehicleColor(colorSelect.value);
+                    }
                 }
             } else {
                 infoDiv.innerHTML = `<div style="background:#ffe0e0;padding:15px;border-radius:16px;">❌ لم يتم العثور على الطلب</div>`;
                 formDiv.style.display = 'none';
                 btn.style.display = 'none';
+                container3d.style.display = 'none';
             }
         }
     });
@@ -716,31 +950,42 @@
         const transactionNo = document.getElementById('vehicleTransactionNo').value;
         const licenseNo = document.getElementById('vehicleLicenseNo').value;
         const vehicleLicenseNumber = document.getElementById('vehicleLicenseNumber').value;
+        const vehicleColor = document.getElementById('vehicleColor').value;
+        const vehicleOwnerName = document.getElementById('vehicleOwnerName').value;
+        const vehicleModel = document.getElementById('vehicleModel').value;
+        const vehicleYear = document.getElementById('vehicleYear').value;
+        const vehicleCapacity = document.getElementById('vehicleCapacity').value;
         const vehicleType = document.getElementById('vehicleType').value;
         const vehicleExpiryDate = document.getElementById('vehicleExpiryDate').value;
         const driverName = document.getElementById('driverName').value;
         const driverLicenseNumber = document.getElementById('driverLicenseNumber').value;
         const driverPhone = document.getElementById('driverPhone').value;
         
-        if (!vehicleLicenseNumber || !driverName || !driverPhone) {
-            showToast('❌ الرجاء إدخال بيانات المركبة والسائق', 'error');
+        if (!vehicleLicenseNumber || !vehicleColor || !vehicleOwnerName || !driverName || !driverPhone) {
+            showToast('❌ الرجاء إدخال جميع البيانات المطلوبة (رخصة المركبة، اللون، المالك، السائق)', 'error');
             return;
         }
         
         const request = requests.find(r => r.transactionNo === transactionNo && r.licenseNo === licenseNo);
         if (request) {
-            request.vehicleAssigned = { vehicleLicenseNumber, vehicleType, vehicleExpiryDate, driverName, driverLicenseNumber, driverPhone };
+            request.vehicleAssigned = { 
+                vehicleLicenseNumber, vehicleColor, vehicleOwnerName, vehicleModel, vehicleYear, 
+                vehicleCapacity, vehicleType, vehicleExpiryDate, 
+                driverName, driverLicenseNumber, driverPhone 
+            };
             request.approvalStatus = 'under_review';
             saveRequests();
             showToast('✅ تم تعيين المركبة وإرسال الطلب للموافقة');
             document.getElementById('vehicleTransactionNo').value = '';
             document.getElementById('vehicleLicenseNo').value = '';
             document.getElementById('vehicleLicenseNumber').value = '';
+            document.getElementById('vehicleOwnerName').value = '';
             document.getElementById('driverName').value = '';
             document.getElementById('driverPhone').value = '';
             document.getElementById('vehicleRequestInfo').innerHTML = '';
             document.getElementById('vehicleDetailsForm').style.display = 'none';
             document.getElementById('assignVehicleBtn').style.display = 'none';
+            document.getElementById('vehicle3dContainer').style.display = 'none';
             await loadAllRequests();
             await loadPendingApprovals();
         }
@@ -752,7 +997,7 @@
         const tbody = document.querySelector('#pendingApprovalsTable tbody');
         if (tbody) {
             if (pending.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">📭 لا توجد طلبات بانتظار الموافقة</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">📭 لا توجد طلبات بانتظار الموافقة</td>'                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">📭 لا توجد طلبات بانتظار الموافقة</td></tr>';
             } else {
                 tbody.innerHTML = pending.map(r => `<tr>
                     <td>${r.transactionNo}</td>
@@ -959,10 +1204,15 @@
                         <div class="card-detail"><span>👤 اسم المواطن:</span><span>${request.citizenName}</span></div>
                         <div class="card-detail"><span>📍 الحي:</span><span>${request.district}</span></div>
                         <div class="card-detail"><span>🏠 عنوان العقار:</span><span>${request.address}</span></div>
-                        <div class="card-detail"><span>🚚 المركبة:</span><span>${request.vehicleAssigned.vehicleType} - ${request.vehicleAssigned.vehicleLicenseNumber}</span></div>
+                        <div class="card-detail"><span>🚚 رقم رخصة المركبة:</span><span>${request.vehicleAssigned.vehicleLicenseNumber}</span></div>
+                        <div class="card-detail"><span>🎨 لون المركبة:</span><span>${request.vehicleAssigned.vehicleColor || '-'}</span></div>
+                        <div class="card-detail"><span>👤 مالك المركبة:</span><span>${request.vehicleAssigned.vehicleOwnerName || '-'}</span></div>
+                        <div class="card-detail"><span>📅 الموديل/السنة:</span><span>${request.vehicleAssigned.vehicleModel || '-'} / ${request.vehicleAssigned.vehicleYear || '-'}</span></div>
+                        <div class="card-detail"><span>⚖️ الحمولة:</span><span>${request.vehicleAssigned.vehicleCapacity || '-'} طن</span></div>
+                        <div class="card-detail"><span>🔧 نوع المركبة:</span><span>${request.vehicleAssigned.vehicleType || '-'}</span></div>
                         <div class="card-detail"><span>👨‍✈️ السائق:</span><span>${request.vehicleAssigned.driverName}</span></div>
                         <div class="card-detail"><span>📞 هاتف السائق:</span><span>${request.vehicleAssigned.driverPhone}</span></div>
-                        <div class="card-detail"><span>✅ حالة الطلب:</span><span>${request.approvalStatus === 'approved' ? 'معتمد - يمكن استرداد التأمين' : request.approvalStatus === 'under_review' ? 'قيد المراجعة - لا يمكن استرداد التأمين' : request.approvalStatus}</span></div>
+                        <div class="card-detail"><span>✅ حالة الطلب:</span><span>${request.approvalStatus === 'approved' ? 'معتمد - يمكن استرداد التأمين' : request.approvalStatus === 'under_review' ? 'قيد المراجعة' : request.approvalStatus}</span></div>
                         <div class="card-detail"><span>💰 المبلغ التأميني:</span><span>${Math.round(request.item2 || (request.volume * 40))} ج</span></div>
                         <hr>
                         <div style="text-align:center;"><button onclick="window.print()" style="background:#1a472a;color:white;border:none;border-radius:20px;padding:8px 20px;cursor:pointer;"><i class="fas fa-print"></i> طباعة الكارت</button></div>
@@ -1051,8 +1301,15 @@
             'الحجم': (r.volume || 0).toFixed(2),
             'الإجمالي': Math.round(r.total || 0),
             'طريقة الدفع': r.paymentMethod,
-            'المركبة': r.vehicleAssigned ? `${r.vehicleAssigned.vehicleType} - ${r.vehicleAssigned.vehicleLicenseNumber}` : 'لم تعين',
-            'السائق': r.vehicleAssigned ? r.vehicleAssigned.driverName : '-',
+            'رقم رخصة المركبة': r.vehicleAssigned?.vehicleLicenseNumber || '-',
+            'لون المركبة': r.vehicleAssigned?.vehicleColor || '-',
+            'مالك المركبة': r.vehicleAssigned?.vehicleOwnerName || '-',
+            'الموديل': r.vehicleAssigned?.vehicleModel || '-',
+            'سنة الصنع': r.vehicleAssigned?.vehicleYear || '-',
+            'الحمولة (طن)': r.vehicleAssigned?.vehicleCapacity || '-',
+            'نوع المركبة': r.vehicleAssigned?.vehicleType || '-',
+            'السائق': r.vehicleAssigned?.driverName || '-',
+            'هاتف السائق': r.vehicleAssigned?.driverPhone || '-',
             'حالة الموافقة': r.approvalStatus === 'approved' ? 'معتمد' : r.approvalStatus === 'rejected' ? 'مرفوض' : r.approvalStatus === 'under_review' ? 'قيد المراجعة' : 'قيد الانتظار'
         }));
         const ws = XLSX.utils.json_to_sheet(data);
@@ -1068,7 +1325,7 @@
         
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ orientation: 'landscape' });
-        const tableData = filtered.map(r => [r.transactionNo || '', r.licenseNo || '', r.citizenName || '', r.district || '', (r.volume || 0).toFixed(2), Math.round(r.total || 0) + ' ج', r.paymentMethod || '', r.vehicleAssigned ? r.vehicleAssigned.driverName : '-', r.approvalStatus === 'approved' ? 'معتمد' : r.approvalStatus === 'rejected' ? 'مرفوض' : 'قيد الانتظار']);
+        const tableData = filtered.map(r => [r.transactionNo || '', r.licenseNo || '', r.citizenName || '', r.district || '', (r.volume || 0).toFixed(2), Math.round(r.total || 0) + ' ج', r.paymentMethod || '', r.vehicleAssigned?.driverName || '-', r.approvalStatus === 'approved' ? 'معتمد' : r.approvalStatus === 'rejected' ? 'مرفوض' : 'قيد الانتظار']);
         doc.autoTable({
             head: [['رقم المعاملة', 'رقم الترخيص', 'المواطن', 'الحي', 'الحجم', 'الإجمالي', 'طريقة الدفع', 'السائق', 'الحالة']],
             body: tableData,
@@ -1153,7 +1410,7 @@
     // التهيئة
     loadDistrictsFilter();
     updateCalculations();
-    console.log('✅ المنظومة جاهزة - جميع الصلاحيات مفعلة');
+    console.log('✅ المنظومة جاهزة - مع رسمة السيارة ثلاثية الأبعاد');
 </script>
 </body>
 </html>
